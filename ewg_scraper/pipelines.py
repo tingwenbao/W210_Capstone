@@ -25,8 +25,11 @@ class EwgScraperPipeline(object):
     def spider_closed(self, spider):
         with open('%s_ingredients.json' % spider.name, 'w') as f:
             json.dump(self.items, f)
+        print "Crawled {} ingredients".format(spider.itemsCrawled)
 
     def process_item(self, item, spider):
         # Require an ingredient name and score at a minimum
         if item and item['ingredient'] and item['ingredient_score']:
             self.items.append(dict(item))
+        if not spider.itemsCrawled % 100:
+            print "Crawled {} ingredients".format(spider.itemsCrawled)

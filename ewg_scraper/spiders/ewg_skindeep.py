@@ -29,8 +29,7 @@ class EwgSkindeepSpider(scrapy.Spider):
     crawledCategoryUrls = []
     crawledProductUrls = []
     crawledIngredientUrls = []
-    savedSongs = []
-    numCrawled = 0
+    itemsCrawled = 0
 
     def try_cast(self, value, type=int):
         # Try to cast value to input type return casted value or None if unsuccessful
@@ -87,10 +86,14 @@ class EwgSkindeepSpider(scrapy.Spider):
         l = ItemLoader(item=EwgScraperItem(), response=response)
 
         # Get ingredient score from image filename
-        score_img_uri = response.xpath(self.ingredient_score_xpath).extract_first()
-        score_img_name = score_img_uri[score_img_uri.rfind("/")+1:]
-        ingredient_score = self.try_cast(
-            score_img_name[:score_img_name.find(".")].replace("score_image", "")[0])
+        ingredient_score = None
+        try:
+            score_img_uri = response.xpath(self.ingredient_score_xpath).extract_first()
+            score_img_name = score_img_uri[score_img_uri.rfind("/")+1:]
+            ingredient_score = self.try_cast(
+                score_img_name[:score_img_name.find(".")].replace("score_image", "")[0])
+        except AttributeError:
+            pass
 
         # Get score bar values
         scr_brs = response.xpath(self.score_bars_xpath)
@@ -123,5 +126,6 @@ class EwgSkindeepSpider(scrapy.Spider):
         item = l.load_item()
         self.crawledIngredientUrls.append(response.url)
         self.logger.info('[parse_ingredient] Added info for %s', item['ingredient'])
+        self.itemsCrawled = self.itemsCrawled + 1
         #inspect_response(response, self)
         yield item
