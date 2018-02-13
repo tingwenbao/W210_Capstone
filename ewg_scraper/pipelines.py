@@ -29,7 +29,8 @@ class EwgScraperPipeline(object):
 
     def process_item(self, item, spider):
         # Require an ingredient name and score at a minimum
-        if item and item['ingredient'] and item['ingredient_score']:
-            self.items.append(dict(item))
+        if item:
+            if 'ingredient' in item.keys() and 'ingredient_score' in item.keys():
+                self.items.append(dict(item))
         if not spider.itemsCrawled % 100:
             print "Crawled {} ingredients".format(spider.itemsCrawled)

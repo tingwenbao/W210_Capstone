@@ -97,35 +97,36 @@ class EwgSkindeepSpider(scrapy.Spider):
 
         # Get score bar values
         scr_brs = response.xpath(self.score_bars_xpath)
-        overall_hazard_score = self.try_cast(
-            scr_brs[self.ovrll_hz_ps].extract().replace("width:", "").replace("px", ""),
-            float)
-        cancer_score = self.try_cast(
-            scr_brs[self.cncr_ps].extract().replace("width:", "").replace("px", ""),
-            float)
-        dev_reprod_tox_score = self.try_cast(
-            scr_brs[self.dv_rprd_tx_ps].extract().replace("width:", "").replace("px", ""),
-            float)
-        allergy_imm_tox_score = self.try_cast(
-            scr_brs[self.allrgy_imm_tx_ps].extract().replace("width:", "").replace("px", ""),
-            float)
-        use_restrict_score = self.try_cast(
-            scr_brs[self.use_rstrct_ps].extract().replace("width:", "").replace("px", ""),
-            float)
+        if scr_brs:
+            overall_hazard_score = self.try_cast(
+                scr_brs[self.ovrll_hz_ps].extract().replace("width:", "").replace("px", ""),
+                float)
+            cancer_score = self.try_cast(
+                scr_brs[self.cncr_ps].extract().replace("width:", "").replace("px", ""),
+                float)
+            dev_reprod_tox_score = self.try_cast(
+                scr_brs[self.dv_rprd_tx_ps].extract().replace("width:", "").replace("px", ""),
+                float)
+            allergy_imm_tox_score = self.try_cast(
+                scr_brs[self.allrgy_imm_tx_ps].extract().replace("width:", "").replace("px", ""),
+                float)
+            use_restrict_score = self.try_cast(
+                scr_brs[self.use_rstrct_ps].extract().replace("width:", "").replace("px", ""),
+                float)
+            l.add_value('overall_hazard_score', overall_hazard_score)
+            l.add_value('cancer_score', cancer_score)
+            l.add_value('dev_reprod_tox_score', dev_reprod_tox_score)
+            l.add_value('allergy_imm_tox_score', allergy_imm_tox_score)
+            l.add_value('use_restrict_score', use_restrict_score)
 
         l.add_value('url', response.url)
         l.add_xpath('ingredient', self.ingredient_xpath)
         l.add_value('ingredient_score', ingredient_score)
         l.add_xpath('data_availability', self.data_availability_xpath)
-        l.add_value('overall_hazard_score', overall_hazard_score)
-        l.add_value('cancer_score', cancer_score)
-        l.add_value('dev_reprod_tox_score', dev_reprod_tox_score)
-        l.add_value('allergy_imm_tox_score', allergy_imm_tox_score)
-        l.add_value('use_restrict_score', use_restrict_score)
 
         item = l.load_item()
         self.crawledIngredientUrls.append(response.url)
-        self.logger.info('[parse_ingredient] Added info for %s', item['ingredient'])
+        if "ingredient" in item.keys():
+            self.logger.info('[parse_ingredient] Added info for %s', item['ingredient'])
         self.itemsCrawled = self.itemsCrawled + 1
-        #inspect_response(response, self)
         yield item
