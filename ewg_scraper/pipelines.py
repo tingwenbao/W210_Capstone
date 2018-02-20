@@ -31,7 +31,8 @@ class EwgScraperPipeline(object):
         self.rt.stop()
         with open('%s_ingredients.json' % spider.name, 'w') as f:
             json.dump([entry for entry in self.item_dict.values()], f)
-        print "Crawled {} ingredients".format(spider.ingredientsCrawled)
+        print "FINAL: Ingredients: {}\tProducts: {}".format(
+            self.ingredientsCrawled, self.productsCrawled)
 
     def process_item(self, item, spider):
         # Add ingredient or product to collected data

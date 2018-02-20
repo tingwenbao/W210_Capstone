@@ -115,6 +115,7 @@ class EwgSkindeepSpider(scrapy.Spider):
         product_score = self.get_score(response.xpath(self.score_xpath).extract_first())
         product_ldr = ItemLoader(item=EwgScraperProduct(), response=response)
         product_ldr.add_value('product_id', response.meta['product_id'])
+        product_ldr.add_value('url', response.url)
         product_ldr = self.get_scr_bars(response.xpath(self.score_bars_xpath), product_ldr)
         product_ldr.add_xpath('product_name', self.name_xpath)
         product_ldr.add_value('product_score', product_score)
