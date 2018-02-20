@@ -6,7 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
-from scrapy.loader.processors import TakeFirst
+from scrapy.loader.processors import TakeFirst, Identity
 
 
 def compact(s):
@@ -41,3 +41,4 @@ class EwgScraperProduct(scrapy.Item):
     dev_reprod_tox_score = scrapy.Field(output_processor=TakeFirst())
     allergy_imm_tox_score = scrapy.Field(output_processor=TakeFirst())
     use_restrict_score = scrapy.Field(output_processor=TakeFirst())
+    ingredient_list = scrapy.Field(output_processor=Identity())
