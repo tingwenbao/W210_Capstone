@@ -120,7 +120,7 @@ skindeep_uris = [
     "/skindeep/browse/shampoo/",
     "/skindeep/browse/styling+gel;;lotion/"]
 
-category_params = [
+category_params1 = [
     "sunless%2Btanning",
     "sunscreen%3A%2Blip%2Bbalm",
     "sunscreen%3A%2Bmakeup",
@@ -149,7 +149,9 @@ category_params = [
     "lip%2Bplumper",
     "lipstick",
     "body%2Bart",
-    "glitter",
+    "glitter"]
+
+category_params2 = [
     "bar%2Bsoap",
     "bath%2Boil%3B%3Bsalts%3B%3Bsoak",
     "body%2Bwash%3B%3Bcleanser",
@@ -180,7 +182,9 @@ category_params = [
     "moisturizer",
     "antiperspirant%3B%3Bdeodorant",
     "baby%2Bshampoo",
-    "conditioner",
+    "conditioner"]
+
+category_params3 = [
     "shampoo",
     "dandruff%3B%3Bscalp%2Btreatment",
     "hair-loss%2Btreatment",

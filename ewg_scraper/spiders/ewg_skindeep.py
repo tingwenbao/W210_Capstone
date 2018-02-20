@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from ewg_skindeep_uris import category_params
+from ewg_skindeep_uris import category_params1, category_params2, category_params3
 from scrapy import Selector
 from ewg_scraper.items import EwgScraperIngredient, EwgScraperProduct
 from scrapy.loader import ItemLoader
@@ -15,7 +15,7 @@ class EwgSkindeepSpider(scrapy.Spider):
     num_per_page = 5000
     req_params = "&&showmore=products&atatime=" + str(num_per_page)
     site_url = 'http://www.ewg.org/skindeep/browse.php?category='
-    start_urls = [site_url + uri + req_params for uri in category_params]
+    start_urls = [site_url + uri + req_params for uri in category_params1]
 
     # Constants (these might need updates if the site is redisigned)
     ovrll_hz_ps, cncr_ps, dv_rprd_tx_ps, allrgy_imm_tx_ps, use_rstrct_ps = (0, 1, 2, 3, 4)
