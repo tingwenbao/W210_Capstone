@@ -15,11 +15,13 @@ class EwgSkindeepSpider(scrapy.Spider):
     num_per_page = 5000
     req_params = "&&showmore=products&atatime=" + str(num_per_page)
     site_url = 'http://www.ewg.org/skindeep/browse.php?category='
-    start_urls = [site_url + uri + req_params for uri in category_params1]
 
     # Constants (these might need updates if the site is redisigned)
     ovrll_hz_ps, cncr_ps, dv_rprd_tx_ps, allrgy_imm_tx_ps, use_rstrct_ps = (0, 1, 2, 3, 4)
-    product_link_xpath = '//td[@class="product_name_list"]/a/@href'
+    product_tr_list_xpath = '//table[@id="table-browse"]//tr'
+    product_type_xpath = 'td[4]/text()'  # Relative to product_tr elem
+    product_link_xpath = 'td[@class="product_name_list"]/a/@href'  # Relative to product_tr elem
+
     ingredient_link_xpath = (
         '//div[@id="Ingredients"]/table[@class="product_tables"]'
         '//td[@class="firstcol"]/a/@href')
@@ -34,6 +36,20 @@ class EwgSkindeepSpider(scrapy.Spider):
     crawledIngredientUrls = []
     ingredientsCrawled = 0
     productsCrawled = 0
+
+    def __init__(self, crawl_num=1, *args, **kwargs):
+        super(EwgSkindeepSpider, self).__init__(*args, **kwargs)
+        cat = category_params1
+        if int(crawl_num) is 2:
+            cat = category_params2
+            print("Crawler #2")
+        elif int(crawl_num) is 3:
+            cat = category_params3
+            print("Crawler #3")
+        else:
+            print("Crawler #1")
+
+        self.start_urls = [self.site_url + uri + self.req_params for uri in cat]
 
     def try_cast(self, value, type=int):
         # Try to cast value to input type return casted value or None if unsuccessful
@@ -85,21 +101,21 @@ class EwgSkindeepSpider(scrapy.Spider):
         # self.logger.info('[parse] Called on %s', response.url)
         self.crawledCategoryUrls.append(response.url)  # Mark category page as seen
 
-        # Get HTML response
-        responseHTML = response.body
-        sel = Selector(text=responseHTML, type="html")
-
         # Find all product links in the page and add them to the list for crawling
+        # Also find the product type
         # This prevents the spider from crawling the same link multiple times or looping
         found_product_links = False
-        for uri in sel.xpath(self.product_link_xpath).extract():
-            if not uri in self.crawledProductUrls:
+        for tr in response.xpath(self.product_tr_list_xpath):
+            p_type = tr.xpath(self.product_type_xpath).extract_first()
+            uri = tr.xpath(self.product_link_xpath).extract_first()
+            if uri and uri not in self.crawledProductUrls:
                 self.crawledProductUrls.append(uri)
                 product_url = urlparse.urljoin(response.url, uri)
                 found_product_links = True
                 #self.logger.info('[parse] Found product link: %s', product_url)
                 product_request = scrapy.Request(product_url, callback=self.parse_product)
                 product_request.meta['product_id'] = urlsafe_b64encode(uri)
+                product_request.meta['product_type'] = p_type
                 yield product_request
         if not found_product_links:
             pass  # self.logger.warning('[parse] Could not extract product links from: %s', response.url)
@@ -108,13 +124,12 @@ class EwgSkindeepSpider(scrapy.Spider):
         # Parse a product page
         # self.logger.info('[parse_product] Called on %s', response.url)
         self.crawledProductUrls.append(response.url)
-        responseHTML = response.body
-        sel = Selector(text=responseHTML, type="html")
 
         # Create product item
         product_score = self.get_score(response.xpath(self.score_xpath).extract_first())
         product_ldr = ItemLoader(item=EwgScraperProduct(), response=response)
         product_ldr.add_value('product_id', response.meta['product_id'])
+        product_ldr.add_value('product_type', response.meta['product_type'])
         product_ldr.add_value('url', response.url)
         product_ldr = self.get_scr_bars(response.xpath(self.score_bars_xpath), product_ldr)
         product_ldr.add_xpath('product_name', self.name_xpath)
@@ -125,7 +140,7 @@ class EwgSkindeepSpider(scrapy.Spider):
 
         # Find then parse any ingredients on the product page
         found_ingredient_links = False
-        for uri in sel.xpath(self.ingredient_link_xpath).extract():
+        for uri in response.xpath(self.ingredient_link_xpath).extract():
             ingredient_url = urlparse.urljoin(response.url, uri)
             if not ingredient_url in self.crawledIngredientUrls:
                 self.crawledIngredientUrls.append(ingredient_url)

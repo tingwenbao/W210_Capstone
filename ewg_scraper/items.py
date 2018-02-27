@@ -35,6 +35,7 @@ class EwgScraperProduct(scrapy.Item):
     product_id = scrapy.Field(output_processor=TakeFirst())
     product_name = scrapy.Field(output_processor=TakeFirst())
     product_score = scrapy.Field(output_processor=TakeFirst())
+    product_type = scrapy.Field(output_processor=TakeFirst())
     data_availability = scrapy.Field(output_processor=TakeFirst())
     overall_hazard_score = scrapy.Field(output_processor=TakeFirst())
     cancer_score = scrapy.Field(output_processor=TakeFirst())
