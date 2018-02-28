@@ -27,6 +27,8 @@ class EwgScraperIngredient(scrapy.Item):
     dev_reprod_tox_score = scrapy.Field(output_processor=TakeFirst())
     allergy_imm_tox_score = scrapy.Field(output_processor=TakeFirst())
     use_restrict_score = scrapy.Field(output_processor=TakeFirst())
+    synonym_list = scrapy.Field(output_processor=Identity())
+    function_list = scrapy.Field(output_processor=Identity())
 
 
 class EwgScraperProduct(scrapy.Item):

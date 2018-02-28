@@ -173,6 +173,18 @@ class EwgSkindeepSpider(scrapy.Spider):
         ingredient_ldr.add_value('ingredient_score', ingredient_score)
         ingredient_ldr.add_xpath('data_availability', self.data_availability_xpath)
 
+        # Find synonym and function lists if they exists
+        for other_info in response.xpath('//p[@class="tinytype"]'):
+            for strong_text in other_info.xpath('strong/text()').extract():
+                if strong_text and "synonym" in strong_text.lower():  # This element has the synonym list
+                    synonym_list = other_info.xpath('text()').extract_first()
+                    if synonym_list:
+                        ingredient_ldr.add_value('synonym_list', synonym_list.split(";"))
+                elif strong_text and "function" in strong_text.lower():  # This element has the functions list
+                    function_list = other_info.xpath('text()').extract_first()
+                    if function_list:
+                        ingredient_ldr.add_value('function_list', function_list.split(";"))
+
         item = ingredient_ldr.load_item()
         self.crawledIngredientUrls.append(response.url)
         # if "ingredient_name" in item.keys():
