@@ -142,13 +142,13 @@ class EwgSkindeepSpider(scrapy.Spider):
         found_ingredient_links = False
         for uri in response.xpath(self.ingredient_link_xpath).extract():
             ingredient_url = urlparse.urljoin(response.url, uri)
+            ingredient_id = urlsafe_b64encode(uri)
+            ingredient_list.append(ingredient_id)
             if not ingredient_url in self.crawledIngredientUrls:
-                self.crawledIngredientUrls.append(ingredient_url)
+                self.crawledIngredientUrls.append(uri)
                 found_ingredient_links = True
-                ingredient_id = urlsafe_b64encode(uri)
                 ingredient_request = scrapy.Request(ingredient_url, callback=self.parse_ingredient)
                 ingredient_request.meta['ingredient_id'] = ingredient_id
-                ingredient_list.append(ingredient_id)
                 yield ingredient_request
         if not found_ingredient_links:
             pass  # self.logger.warning('[parse_product] Could not extract ingredient links from: %s', response.url)
