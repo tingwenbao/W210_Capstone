@@ -4,6 +4,7 @@ import BaseHTTPServer
 import re
 import json
 import pandas as pd
+import argparse
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
@@ -11,36 +12,42 @@ from fuzzywuzzy import process
 HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
 PORT_NUMBER = 9000
 
+
 class BufferedReadFile(object):
 
-      def __init__(self, real_file):
-            self.file = real_file
-            self.buffer = ""
+    def __init__(self, real_file):
+        self.file = real_file
+        self.buffer = ""
 
-      def read(self, size=-1):
-            buf = self.file.read(size)
-            self.buffer += buf
-            return buf
+    def read(self, size=-1):
+        buf = self.file.read(size)
+        self.buffer += buf
+        return buf
 
-      def readline(self, size=-1):
-            buf = self.file.readline(size)
-            self.buffer += buf
-            return buf
+    def readline(self, size=-1):
+        buf = self.file.readline(size)
+        self.buffer += buf
+        return buf
 
-      def flush(self):
-            self.file.flush()
+    def flush(self):
+        self.file.flush()
 
-      def close(self):
-            self.file.close()
-
+    def close(self):
+        self.file.close()
 
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     store_path = os.path.join(os.curdir, 'store')
     upload_path = os.path.join(os.curdir, 'upload.jpg')
-    
+    record_data = [
+        'ingredient_name',
+        'ingredient_score',
+        'dev_reprod_tox_score',
+        'allergy_imm_tox_score',
+        'cancer_score']
+
     raw_request = ''
-    response_code= 500
+    response_code = 500
     response_body = ''
 
     def do_HEAD(s):
@@ -66,9 +73,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.rfile = BufferedReadFile(self.rfile)
         BaseHTTPServer.BaseHTTPRequestHandler.handle_one_request(self)
 
-
     def do_POST(s):
-        
+
         if s.path == '/barcode':
             length = s.headers['content-length']
             data = s.rfile.read(int(length))
@@ -85,7 +91,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             data = s.rfile.read(int(length))
             decoded = data.decode()
             print (decoded)
-            search_str = re.search('(?<==)\w+',str(decoded))
+            search_str = re.search('(?<==)\w+', str(decoded))
             print (search_str.group(0))
             # import ingredient score and search and return score of the search term
             with open('ewg_ingredients.json') as jsondata:
@@ -93,14 +99,17 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 jsondata.close()
 
             ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
-            matched_term = process.extract(search_str.group(0), ewg_ingredient['ingredient_name'], limit=1)[0][0]
-            matched_record = ewg_ingredient[ewg_ingredient.ingredient_name==matched_term][['ingredient_name', 'ingredient_score', 'dev_reprod_tox_score', 'allergy_imm_tox_score','cancer_score']]
+            matched_term = process.extract(
+                search_str.group(0),
+                ewg_ingredient['ingredient_name'],
+                limit=1)[0][0]
+            record_filter = ewg_ingredient.ingredient_name == matched_term
+            matched_record = ewg_ingredient[record_filter][s.record_data]
             results = matched_record.to_json(orient='index')
             print (results)
-            
+
             s.do_HEAD()
             s.wfile.write(results.encode("utf-8"))
-                                                                                                                            
 
         elif s.path == '/upload':
             print "recognize /upload"
@@ -129,11 +138,10 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.send_response(200)
             s.end_headers()
             print len(body)
-            with open(s.upload_path,'wb') as fh:
-                  fh.write(body)
-                  
+            with open(s.upload_path, 'wb') as fh:
+                fh.write(body)
 
- # below functions is for handling chunked response for photos           
+ # below functions is for handling chunked response for photos
     def handle_chunked_encoding(self):
 
         body = ''
@@ -166,16 +174,19 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(400)  # Bad request.
             return -1
         return int(chunk_size_and_ext_line[:chunk_size_end], base=16)
-                                                                                                                                                        
-    
-            
+
 if __name__ == '__main__':
-      server_class = BaseHTTPServer.HTTPServer
-      httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
-      print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
-      try:
-          httpd.serve_forever()
-      except KeyboardInterrupt:
-          pass
-      httpd.server_close()
-      print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-h', '--host', help='Server hostname', default=HOST_NAME)
+    parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
+    args = parser.parse_args()
+
+    server_class = BaseHTTPServer.HTTPServer
+    httpd = server_class((args.host, args.port), MyHandler)
+    print time.asctime(), "Server Starts - %s:%s" % (args.host, args.port)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    httpd.server_close()
+    print time.asctime(), "Server Stops - %s:%s" % (args.host, args.port)
