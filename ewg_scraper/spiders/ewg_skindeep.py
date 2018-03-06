@@ -53,12 +53,10 @@ class EwgSkindeepSpider(scrapy.Spider):
 
     def try_cast(self, value, type=int):
         # Try to cast value to input type return casted value or None if unsuccessful
-        ret = None
         try:
-            ret = type(value)
-        except ValueError:
-            pass
-        return ret
+            return type(value)
+        except (ValueError, TypeError):
+            return None
 
     def get_scr_bars(self, scr_brs, ldr):
         # Get values from score bar xpath, add data to input item loader
@@ -87,18 +85,17 @@ class EwgSkindeepSpider(scrapy.Spider):
 
     def get_score(self, score_img_uri):
         # Get Score from a product or ingredient page's score image
-        ingredient_score = None
         try:
             score_img_name = score_img_uri[score_img_uri.rfind("/")+1:]
             ingredient_score = self.try_cast(
                 score_img_name[:score_img_name.find(".")].replace("score_image", "")[0])
         except AttributeError:
-            pass
+            return None
         return ingredient_score
 
     def parse(self, response):
         # Parse a product group page
-        # self.logger.info('[parse] Called on %s', response.url)
+        self.logger.info('[parse] Called on %s', response.url)
         self.crawledCategoryUrls.append(response.url)  # Mark category page as seen
 
         # Find all product links in the page and add them to the list for crawling
@@ -112,17 +109,17 @@ class EwgSkindeepSpider(scrapy.Spider):
                 self.crawledProductUrls.append(uri)
                 product_url = urlparse.urljoin(response.url, uri)
                 found_product_links = True
-                #self.logger.info('[parse] Found product link: %s', product_url)
+                self.logger.info('[parse] Found product link: %s', product_url)
                 product_request = scrapy.Request(product_url, callback=self.parse_product)
                 product_request.meta['product_id'] = urlsafe_b64encode(uri)
                 product_request.meta['product_type'] = p_type
                 yield product_request
         if not found_product_links:
-            pass  # self.logger.warning('[parse] Could not extract product links from: %s', response.url)
+            self.logger.warning('[parse] Could not extract product links from: %s', response.url)
 
     def parse_product(self, response):
         # Parse a product page
-        # self.logger.info('[parse_product] Called on %s', response.url)
+        self.logger.info('[parse_product] Called on %s', response.url)
         self.crawledProductUrls.append(response.url)
 
         # Create product item
@@ -151,14 +148,14 @@ class EwgSkindeepSpider(scrapy.Spider):
                 ingredient_request.meta['ingredient_id'] = ingredient_id
                 yield ingredient_request
         if not found_ingredient_links:
-            pass  # self.logger.warning('[parse_product] Could not extract ingredient links from: %s', response.url)
+            self.logger.warning('[parse_product] Could not extract ingredient links from: %s', response.url)
 
         product_ldr.add_value('ingredient_list', ingredient_list)
         yield product_ldr.load_item()
 
     def parse_ingredient(self, response):
         # Parse ingredient page
-        # self.logger.info('[parse_ingredient] Called on %s', response.url)
+        self.logger.info('[parse_ingredient] Called on %s', response.url)
         ingredient_ldr = ItemLoader(item=EwgScraperIngredient(), response=response)
 
         # Get ingredient score from image filename
@@ -187,7 +184,7 @@ class EwgSkindeepSpider(scrapy.Spider):
 
         item = ingredient_ldr.load_item()
         self.crawledIngredientUrls.append(response.url)
-        # if "ingredient_name" in item.keys():
-        #     self.logger.info('[parse_ingredient] Added info for %s', item['ingredient_name'])
+        if "ingredient_name" in item.keys():
+            self.logger.info('[parse_ingredient] Added info for %s', item['ingredient_name'])
         self.ingredientsCrawled = self.ingredientsCrawled + 1
         yield item

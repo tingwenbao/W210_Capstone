@@ -42,7 +42,9 @@ Combine the two options:
 
 `scrapy crawl ewg_skindeep --logfile ewg.log -s JOBDIR=crawls/ewg_skindeep-1`
 
-Running scraper(s) with `tmux` in case your SSH connection gets terminated. See <https://askubuntu.com/questions/8653/how-to-keep-processes-running-after-ending-ssh-session> for details.
+To run multiple crawlers on different machines add `-a crawl_num=N` where N is either 1,2, or 3
+
+Run scraper(s) with `tmux` in case your SSH connection gets terminated. See <https://askubuntu.com/questions/8653/how-to-keep-processes-running-after-ending-ssh-session> for details.
 
 For more details, see:
 
