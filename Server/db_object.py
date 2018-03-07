@@ -8,6 +8,8 @@ class DB_Object(object):
         if kwargs:
             self._id = kwargs.get('_id', ObjectId())
             for (k, v) in kwargs.items():
+                if k == '_id':
+                    continue
                 super().__setattr__(k, v)
 
     def get_as_json(self):
