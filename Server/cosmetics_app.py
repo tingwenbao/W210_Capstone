@@ -1,6 +1,6 @@
 import time
 import os
-import BaseHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import re
 import json
 import pandas as pd
@@ -36,7 +36,7 @@ class BufferedReadFile(object):
         self.file.close()
 
 
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class MyHandler(BaseHTTPRequestHandler):
     store_path = os.path.join(os.curdir, 'store')
     upload_path = os.path.join(os.curdir, 'upload.jpg')
     record_data = [
@@ -112,7 +112,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.wfile.write(results.encode("utf-8"))
 
         elif s.path == '/upload':
-            print "recognize /upload"
+            print("recognize /upload")
 
             MyHandler.raw_request = s.rfile.buffer
             s.rfile.buffer = ''
@@ -130,14 +130,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 # value to ensure that any gzip stream can be decoded. The offset of 16
                 # specifies that the stream to decompress will be formatted with a gzip
                 # wrapper.
-                print "gzip"
+                print("gzip")
                 body = zlib.decompress(body, 16 + 15)
 
             MyHandler.raw_request += body
 
             s.send_response(200)
             s.end_headers()
-            print len(body)
+            print (len(body))
             with open(s.upload_path, 'wb') as fh:
                 fh.write(body)
 
@@ -155,7 +155,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if chunk_size == 0:
                 # Read through any trailer fields.
                 trailer_line = self.rfile.readline()
-                print trailer_line
+                print (trailer_line)
                 while trailer_line.strip() != '':
                     trailer_line = self.rfile.readline()
                     # Read the chunk size.
@@ -177,16 +177,16 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-h', '--host', help='Server hostname', default=HOST_NAME)
+    parser.add_argument('-o', '--host', help='Server hostname', default=HOST_NAME)
     parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
     args = parser.parse_args()
 
-    server_class = BaseHTTPServer.HTTPServer
+    server_class = HTTPServer
     httpd = server_class((args.host, args.port), MyHandler)
-    print time.asctime(), "Server Starts - %s:%s" % (args.host, args.port)
+    print (time.asctime(), "Server Starts - %s:%s" % (args.host, args.port))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print time.asctime(), "Server Stops - %s:%s" % (args.host, args.port)
+    print (time.asctime(), "Server Stops - %s:%s" % (args.host, args.port))
