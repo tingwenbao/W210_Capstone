@@ -26,3 +26,6 @@ class DB_Object(object):
                 raise Exception("Key not found in json_data: {}".format(e.message))
         else:
             raise Exception("No data to create DB_Object from!")
+
+    def __getitem__(self, k):
+        return self.__getattribute__(k)
