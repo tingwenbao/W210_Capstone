@@ -91,40 +91,45 @@ def test_delete_all(repository):
         print("[FAILED] test_delete_all")
 
 
-def main(host=HOST_NAME, port=PORT_NUMBER):
+def main(**kwargs):
+    host = kwargs.get('host', None)
+    port = kwargs.get('port', None)
+    test = kwargs.get('test', False)
     capstone_db = DB_CRUD(host, port, db='capstone', col='ingredients')
 
-    #display all items from DB
-    load_all_items_from_database(capstone_db)
+    if test:
+        #display all items from DB
+        load_all_items_from_database(capstone_db)
 
-    #create new_object and read back from database
-    json_data = {
-        "title": "Wordpress website for Freelancers",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc molestie. ",
-        "price": 250,
-        "assigned_to": "John Doe"}
-    new_object = DB_Object.build_from_json(json_data)
-    test_create(capstone_db, new_object)
+        #create new_object and read back from database
+        json_data = {
+            "title": "Wordpress website for Freelancers",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc molestie. ",
+            "price": 250,
+            "assigned_to": "John Doe"}
+        new_object = DB_Object.build_from_json(json_data)
+        test_create(capstone_db, new_object)
 
-    #update new_object and read back from database
-    new_object.price = 350
-    test_update(capstone_db, new_object)
+        #update new_object and read back from database
+        new_object.price = 350
+        test_update(capstone_db, new_object)
 
-    #delete new_object and try to read back from database
-    test_delete(capstone_db, new_object)
+        #delete new_object and try to read back from database
+        test_delete(capstone_db, new_object)
 
-    #Test nuking and reading anything back from database
-    test_create(capstone_db, DB_Object.build_from_json(json_data))
-    test_create(capstone_db, DB_Object.build_from_json(json_data))
-    test_create(capstone_db, DB_Object.build_from_json(json_data))
-    test_create(capstone_db, DB_Object.build_from_json(json_data))
-    test_create(capstone_db, DB_Object.build_from_json(json_data))
-    test_delete_all(capstone_db)
+        #Test nuking and reading anything back from database
+        test_create(capstone_db, DB_Object.build_from_json(json_data))
+        test_create(capstone_db, DB_Object.build_from_json(json_data))
+        test_create(capstone_db, DB_Object.build_from_json(json_data))
+        test_create(capstone_db, DB_Object.build_from_json(json_data))
+        test_create(capstone_db, DB_Object.build_from_json(json_data))
+        test_delete_all(capstone_db)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--host', help='Server hostname', default=HOST_NAME)
     parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
+    parser.add_argument('-t', '--test', help='Run DB connection tests', action='store_true')
     args = parser.parse_args()
 
-    main(args.host, int(args.port))
+    main(host=args.host, port=int(args.port), test=args.test)
