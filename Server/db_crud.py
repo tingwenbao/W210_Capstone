@@ -98,3 +98,13 @@ class DB_CRUD(object):
             Creates searchable index for input fields
         '''
         self.database[self.collection].create_index(fields, default_language='english')
+
+    def stats(self):
+        '''
+            Returns dictionary of collection statistics
+        '''
+        # Check if collection exists in DB
+        if self.collection in self.database.collection_names():
+            return self.database.command("collstats", self.collection)
+        else:
+            return {'info': "'" + self.collection + "' doesn't exist in database"}

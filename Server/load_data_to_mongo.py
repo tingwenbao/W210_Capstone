@@ -381,6 +381,45 @@ def destroy_everything(host, port):
     print("Erasure complete\nResults:")
 
 
+def print_stat(col_stats):
+    '''
+    prints db collection statistics
+    '''
+    if type(col_stats) is not dict:
+        return
+    for (k, v) in col_stats.items():
+        if k == 'wiredTiger' or k == 'indexSizes' or k == 'indexDetails':
+            continue
+        elif k == 'info':
+            print("\t" + v)
+        else:
+            print("\t" + k + ":", v)
+
+
+def display_db_stats(host, port):
+    num_db = 5
+    print("Database stats:")
+    print("There are", num_db, "collections.")
+
+    people_db = DB_CRUD(host, port, db='capstone', col='people')
+    products_db = DB_CRUD(host, port, db='capstone', col='products')
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    test_db = DB_CRUD(host, port, db='capstone', col='testing')
+    comodegenic_db = DB_CRUD(host, port, db='capstone', col='comodegenic')
+
+    #import ipdb; ipdb.set_trace()
+    print("People database stats:")
+    print_stat(people_db.stats())
+    print("Products database stats:")
+    print_stat(products_db.stats())
+    print("Ingredients database stats:")
+    print_stat(ingredients_db.stats())
+    print("Testing database stats:")
+    print_stat(test_db.stats())
+    print("Comodegenic database stats:")
+    print_stat(comodegenic_db.stats())
+
+
 def main(**kwargs):
     host = kwargs.get('host', None)
     port = kwargs.get('port', None)
@@ -391,6 +430,7 @@ def main(**kwargs):
     p_path = kwargs.get('products', None)
     c_path = kwargs.get('como', None)
     nuke_all = kwargs.get('nuke', False)
+    stats = kwargs.get('stats', False)
 
     if test:
         test_db(host, port)
@@ -400,6 +440,9 @@ def main(**kwargs):
 
     if generate:
         generate_people(host, port)
+
+    if stats:
+        display_db_stats(host, port)
 
     if nuke_all:
         nuke_qstn = '[WARNING] This will erase everything in the databases. Continue?'
@@ -414,6 +457,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--host', help='Server hostname', default=HOST_NAME)
     parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
     parser.add_argument('-n', '--nuke', help='Erase all database data', action='store_true')
+    parser.add_argument('-s', '--stats', help='Display info about stored data', action='store_true')
     parser.add_argument(
         '--ingredients',
         help='Specify ingredients JSON file',
