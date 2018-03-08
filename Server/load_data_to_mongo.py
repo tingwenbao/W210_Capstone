@@ -12,13 +12,16 @@ import argparse
 from db_crud import DB_CRUD
 from db_object import DB_Object
 import names
+import json
 import numpy as np
+from pymongo import TEXT
 
 HOST_NAME = 'localhost'
 PORT_NUMBER = 27017
 
 INGREDIENT_FILE = 'ewg_ingredients.json'
 PRODUCT_FILE = 'ewg_products.json'
+CMDGNC_FILE = 'comodegenic.json'
 
 
 def query_yes_no(question, default="yes"):
@@ -159,18 +162,20 @@ def test_db(host, port):
 
 
 def build_db(host, port, **kwargs):
-    import json
     # Connect to the reequired databases
     products_db = DB_CRUD(host, port, db='capstone', col='products')
     ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    comodegenic_db = DB_CRUD(host, port, db='capstone', col='comodegenic')
     i_path = kwargs.get('i_path', '')
     p_path = kwargs.get('p_path', '')
+    c_path = kwargs.get('c_path', '')
 
     # Open files and load JSON data, exit if unsuccesful
     print("Attempting to open .json files.")
     try:
         i_f = open(i_path, 'rb')
         p_f = open(p_path, 'rb')
+        c_f = open(c_path, 'rb')
     except IOError as e:
         print(e)
         exit()
@@ -180,6 +185,16 @@ def build_db(host, port, **kwargs):
     with p_f:
         products_dict = json.load(p_f)
         prod_ins_len = len(products_dict)
+    with c_f:
+        cmdgnc_list = json.load(c_f)
+        print("Populating comodegenic information")
+        #cmdgnc_dict = {entry['ingredient']: entry for entry in cmdgnc_list}
+        for entry in cmdgnc_list:
+            # Create DB object from product
+            new_entry = DB_Object.build_from_json(entry)
+            # Insert the product into the database
+            comodegenic_db.create(new_entry)
+        comodegenic_db.createIndex([('ingredient', TEXT)])
 
     # Clean and load ingredients into ingredient database
     print("Populating ingredients")
@@ -188,10 +203,30 @@ def build_db(host, port, **kwargs):
         # This is to avoid storing redundant info in the DB, ingredient entries will still
         # be accessible using the ingredient_id when the product entries are added
         del(ingredients_dict[ingredient_id]['ingredient_id'])
+        # Get comodegenic info
+        search_term = '"' + ingredients_dict[ingredient_id].get('ingredient_name', '') + '"'
+        db_objects = comodegenic_db.read(
+            **{'$text': {"$search": search_term}})
+        entries = [DB_Object.build_from_json(e) for e in db_objects]
+
+        # Try to find ingredient in comodegenic DB, fall back to synonyms if necessary
+        if entries:
+            ingredients_dict[ingredient_id]['comodegenic'] = int(entries[0]['level'])
+        else:
+            for synonym in ingredients_dict[ingredient_id].get('synonym_list', []):
+                search_term = '"' + synonym + '"'
+                db_objects = comodegenic_db.read(
+                    **{'$text': {"$search": search_term}})
+                entries = [DB_Object.build_from_json(e) for e in db_objects]
+                if entries:
+                    ingredients_dict[ingredient_id]['comodegenic'] = int(entries[0]['level'])
+                    break
+
         # Create DB object from ingredient
         new_ingredient = DB_Object.build_from_json(ingredients_dict[ingredient_id])
         # Add the new mongoDB id to the existing ingredients dictionary
         ingredients_dict[ingredient_id]['_id'] = new_ingredient['_id']
+
         # Insert the ingredient into the database
         ingredients_db.create(new_ingredient)
 
@@ -203,6 +238,11 @@ def build_db(host, port, **kwargs):
             new_ing_id = ingredients_dict.get(ingredient_id, {}).get('_id', None)
             if new_ing_id:
                 new_ing_ids.append(new_ing_id)
+                # Set product comodegenic score based on max ingredient comodegenic score
+                ing_como = ingredients_dict[ingredient_id].get('comodegenic', 0)
+                prod_como = products_dict[product_id].get('comodegenic', 0)
+                products_dict[product_id]['comodegenic'] = max(prod_como, ing_como)
+
             else:
                 raise KeyError(
                     "Check scraper, key should exist in ingredients JSON!\nKey: '{}'".format(
@@ -241,18 +281,18 @@ def generate_age_acne_lists(num_ages):
         0.065, 0.066, 0.067, 0.071, 0.070, 0.068, 0.065, 0.065, 0.068,
         0.074, 0.072, 0.064, 0.054, 0.040, 0.030, 0.024, 0.019, 0.018]
     acne_bin_probs = [
-        0.025, 0.025, 0.05, 0.14, 0.14, 0.14, 0.14, 0.14, 0.02, 0.02,
-        0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]
+        0.025, 0.05, 0.6, 0.9, 0.8, 0.6, 0.5, 0.3, 0.2, 0.18,
+        0.16, 0.15, 0.1, 0.05, 0.02, 0.02, 0.02, 0.02]
     for i in range(num_ages):
         age = np.random.choice(ages, p=age_bin_probs) + np.random.choice(5)
         acne_prob = acne_bin_probs[int(len(acne_bin_probs) * age / 90)]
-        ret_age.append(age)
-        ret_acne.append(np.random.choice(acne, p=[acne_prob, 1-acne_prob]))
+        ret_age.append(int(age))
+        ret_acne.append(bool(np.random.choice(acne, p=[acne_prob, 1-acne_prob])))
     return ret_age, ret_acne
 
 
 def generate_people(host, port):
-    num_generate_people = 100
+    num_generate_people = 10000
     # Variables
     races = [
         'American Indian',
@@ -261,29 +301,58 @@ def generate_people(host, port):
         'Pacific Islander',
         'White',
         'mixed_other']
-    birth_sex = [
+    birth_sexes = [
         'female',
         'male']
+    skin_types = [
+        'normal',
+        'oily',
+        'dry']
 
     # Probabilities
     race_probs = [0.009, 0.048, 0.126, 0.002, 0.724, 0.091]
     sex_probs = [0.508, 0.492]
+    skin_probs = [1.0/3, 1.0/3, 1.0/3]
 
     # Generate random people data
+    print("Generating people data")
     ppl_race = np.random.choice(races, num_generate_people, p=race_probs)
-    ppl_sex = np.random.choice(birth_sex, num_generate_people, p=sex_probs)
+    ppl_sex = np.random.choice(birth_sexes, num_generate_people, p=sex_probs)
     ppl_ages, ppl_acne = generate_age_acne_lists(num_generate_people)
+    ppl_skins = np.random.choice(skin_types, num_generate_people, p=skin_probs)
+    ppl_names = [names.get_full_name() for i in range(num_generate_people)]
+
+    # Generate dict of people
+    print("Create people dictionary")
+    fields = ['name', 'race', 'birth_sex', 'age', 'acne', 'skin']
+    p_data = zip(ppl_names, ppl_race, ppl_sex, ppl_ages, ppl_acne, ppl_skins)
+    p_list = [dict(zip(fields, d)) for d in p_data]
 
     # Connect to DBs
     people_db = DB_CRUD(host, port, db='capstone', col='people')
     products_db = DB_CRUD(host, port, db='capstone', col='products')
-    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
 
-    # Get products
-    db_objects = products_db.read(product_type='Moisturizer')
+    # Get comodegenic products
+    db_objects = products_db.read(comodegenic={"$gt": 0})
     products = [DB_Object.build_from_json(p) for p in db_objects]
 
-    #import ipdb;ipdb.set_trace()
+    print("Add people to database")
+    # Populate acne causing products for each person
+    for person in p_list:
+        if person['acne']:
+            p_products = []
+            for i in range(np.random.choice(5)):  # Randomly choose 0 to 5 products
+                rand_idx = np.abs(np.random.choice(len(products))-1)
+                prod_como = products[rand_idx]['comodegenic']
+                # Add product to person based on comodegenic score
+                if np.random.choice([True, False], p=[0.2 * prod_como, 1 - (0.2 * prod_como)]):
+                    p_products.append(products[rand_idx]['_id'])
+            person['acne_products'] = p_products
+        else:
+            person['acne_products'] = []
+        # Add person to data base
+        new_person = DB_Object.build_from_json(person)
+        people_db.create(new_person)
 
 
 def destroy_everything(host, port):
@@ -292,18 +361,23 @@ def destroy_everything(host, port):
     products_db = DB_CRUD(host, port, db='capstone', col='products')
     ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
     test_db = DB_CRUD(host, port, db='capstone', col='testing')
+    comodegenic_db = DB_CRUD(host, port, db='capstone', col='comodegenic')
+
     print("Erasing people database")
     ppl_res = people_db.nuke()
-    print("Erased {} entries", ppl_res.deleted_count)
+    print("Erased:", ppl_res.deleted_count)
     print("Erasing products database")
     prod_res = products_db.nuke()
-    print("Erased {} entries", prod_res.deleted_count)
+    print("Erased:", prod_res.deleted_count)
     print("Erasing ingredients database")
     ing_res = ingredients_db.nuke()
-    print("Erased {} entries", ing_res.deleted_count)
+    print("Erased:", ing_res.deleted_count)
     print("Erasing testing database")
     test_res = test_db.nuke()
-    print("Erased {} entries", test_res.deleted_count)
+    print("Erased:", test_res.deleted_count)
+    print("Erasing comodegenic database")
+    comodegenic_res = comodegenic_db.nuke()
+    print("Erased:", comodegenic_res.deleted_count)
     print("Erasure complete\nResults:")
 
 
@@ -315,16 +389,17 @@ def main(**kwargs):
     build = kwargs.get('build', False)
     i_path = kwargs.get('ingredients', None)
     p_path = kwargs.get('products', None)
+    c_path = kwargs.get('como', None)
     nuke_all = kwargs.get('nuke', False)
 
     if test:
         test_db(host, port)
 
+    if build:
+        build_db(host, port, i_path=i_path, p_path=p_path, c_path=c_path)
+
     if generate:
         generate_people(host, port)
-
-    if build:
-        build_db(host, port, i_path=i_path, p_path=p_path)
 
     if nuke_all:
         nuke_qstn = '[WARNING] This will erase everything in the databases. Continue?'
@@ -347,6 +422,10 @@ if __name__ == '__main__':
         '--products',
         help='Specify products JSON file',
         default=PRODUCT_FILE)
+    parser.add_argument(
+        '--como',
+        help='Specify comodegenic file',
+        default=CMDGNC_FILE)
     parser.add_argument('-t', '--test', help='Run DB connection tests', action='store_true')
     parser.add_argument(
         '-g',
