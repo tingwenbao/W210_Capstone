@@ -11,6 +11,8 @@ import sys
 import argparse
 from db_crud import DB_CRUD
 from db_object import DB_Object
+import names
+import numpy as np
 
 HOST_NAME = 'localhost'
 PORT_NUMBER = 27017
@@ -207,6 +209,8 @@ def build_db(host, port, **kwargs):
                         ingredient_id))
         if new_ing_ids:
             products_dict[product_id]['ingredient_list'] = new_ing_ids
+        # Remove old style product id
+        del(products_dict[product_id]['product_id'])
         # Create DB object from product
         new_product = DB_Object.build_from_json(products_dict[product_id])
         # Insert the product into the database
@@ -228,19 +232,58 @@ def build_db(host, port, **kwargs):
     print("[SUCCESS] Database is populated")
 
 
+def generate_age_acne_lists(num_ages):
+    ret_age = []
+    ret_acne = []
+    ages = [age for age in range(0, 90, 5)]
+    acne = [True, False]
+    age_bin_probs = [
+        0.065, 0.066, 0.067, 0.071, 0.070, 0.068, 0.065, 0.065, 0.068,
+        0.074, 0.072, 0.064, 0.054, 0.040, 0.030, 0.024, 0.019, 0.018]
+    acne_bin_probs = [
+        0.025, 0.025, 0.05, 0.14, 0.14, 0.14, 0.14, 0.14, 0.02, 0.02,
+        0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]
+    for i in range(num_ages):
+        age = np.random.choice(ages, p=age_bin_probs) + np.random.choice(5)
+        acne_prob = acne_bin_probs[int(len(acne_bin_probs) * age / 90)]
+        ret_age.append(age)
+        ret_acne.append(np.random.choice(acne, p=[acne_prob, 1-acne_prob]))
+    return ret_age, ret_acne
+
+
 def generate_people(host, port):
-    import random
-    import names
+    num_generate_people = 100
+    # Variables
     races = [
         'American Indian',
         'Asian',
         'Black',
         'Pacific Islander',
-        'White']
+        'White',
+        'mixed_other']
+    birth_sex = [
+        'female',
+        'male']
 
+    # Probabilities
+    race_probs = [0.009, 0.048, 0.126, 0.002, 0.724, 0.091]
+    sex_probs = [0.508, 0.492]
+
+    # Generate random people data
+    ppl_race = np.random.choice(races, num_generate_people, p=race_probs)
+    ppl_sex = np.random.choice(birth_sex, num_generate_people, p=sex_probs)
+    ppl_ages, ppl_acne = generate_age_acne_lists(num_generate_people)
+
+    # Connect to DBs
     people_db = DB_CRUD(host, port, db='capstone', col='people')
     products_db = DB_CRUD(host, port, db='capstone', col='products')
     ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+
+    # Get products
+    db_objects = products_db.read(product_type='Moisturizer')
+    products = [DB_Object.build_from_json(p) for p in db_objects]
+
+    #import ipdb;ipdb.set_trace()
 
 
 def destroy_everything(host, port):
