@@ -50,7 +50,6 @@ class DB_CRUD(object):
         if _id is None and not filter_dict:
             return self.database[self.collection].find({})
         else:
-            print('hit this')
             return self.database[self.collection].find(filter_dict)
 
     def update(self, db_object):
@@ -93,3 +92,9 @@ class DB_CRUD(object):
                 WriteResult - object describing the result of this operations
         '''
         return self.database[self.collection].delete_many({})
+
+    def createIndex(self, fields):
+        '''
+            Creates searchable index for input fields
+        '''
+        self.database[self.collection].create_index(fields, default_language='english')
