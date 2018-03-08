@@ -7,6 +7,7 @@ References code from Greg Bogdan
 source: https://www.freelancer.com/community/articles/crud-operations-in-mongodb-using-python
 '''
 
+import sys
 import argparse
 from db_crud import DB_CRUD
 from db_object import DB_Object
@@ -16,6 +17,39 @@ PORT_NUMBER = 27017
 
 INGREDIENT_FILE = 'ewg_ingredients.json'
 PRODUCT_FILE = 'ewg_products.json'
+
+
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
 
 
 def load_all_items_from_database(repository):
@@ -95,7 +129,7 @@ def test_db(host, port):
     '''
         Test database CRUD ops
     '''
-    test_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    test_db = DB_CRUD(host, port, db='capstone', col='testing')
 
     #display all items from DB
     load_all_items_from_database(test_db)
@@ -205,6 +239,29 @@ def generate_people(host, port):
         'White']
 
     people_db = DB_CRUD(host, port, db='capstone', col='people')
+    products_db = DB_CRUD(host, port, db='capstone', col='products')
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+
+
+def destroy_everything(host, port):
+    print("Erasing all data")
+    people_db = DB_CRUD(host, port, db='capstone', col='people')
+    products_db = DB_CRUD(host, port, db='capstone', col='products')
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    test_db = DB_CRUD(host, port, db='capstone', col='testing')
+    print("Erasing people database")
+    ppl_res = people_db.nuke()
+    print("Erased {} entries", ppl_res.deleted_count)
+    print("Erasing products database")
+    prod_res = products_db.nuke()
+    print("Erased {} entries", prod_res.deleted_count)
+    print("Erasing ingredients database")
+    ing_res = ingredients_db.nuke()
+    print("Erased {} entries", ing_res.deleted_count)
+    print("Erasing testing database")
+    test_res = test_db.nuke()
+    print("Erased {} entries", test_res.deleted_count)
+    print("Erasure complete\nResults:")
 
 
 def main(**kwargs):
@@ -215,22 +272,30 @@ def main(**kwargs):
     build = kwargs.get('build', False)
     i_path = kwargs.get('ingredients', None)
     p_path = kwargs.get('products', None)
+    nuke_all = kwargs.get('nuke', False)
 
     if test:
         test_db(host, port)
 
     if generate:
         generate_people(host, port)
-        pass
 
     if build:
         build_db(host, port, i_path=i_path, p_path=p_path)
+
+    if nuke_all:
+        nuke_qstn = '[WARNING] This will erase everything in the databases. Continue?'
+        if query_yes_no(nuke_qstn, default='no'):
+            destroy_everything(host, port)
+        else:
+            print("No action taken")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--host', help='Server hostname', default=HOST_NAME)
     parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
+    parser.add_argument('-n', '--nuke', help='Erase all database data', action='store_true')
     parser.add_argument(
         '--ingredients',
         help='Specify ingredients JSON file',
