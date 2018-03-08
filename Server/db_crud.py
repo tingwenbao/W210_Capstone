@@ -41,13 +41,16 @@ class DB_CRUD(object):
         '''
         filter_dict = {}
         _id = kwargs.get('_id', None)
+        if '_id' in kwargs.keys():
+            del(kwargs['_id'])
         for (k, v) in kwargs.items():
             if k == '_id':
                 continue
             filter_dict[k] = v
-        if _id is None:
+        if _id is None and not filter_dict:
             return self.database[self.collection].find({})
         else:
+            print('hit this')
             return self.database[self.collection].find(filter_dict)
 
     def update(self, db_object):
