@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+'''
+Cosmetics app server
+'''
 import time
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -5,35 +9,26 @@ import re
 import json
 import pandas as pd
 import argparse
-from fuzzywuzzy import fuzz
+from load_data_to_mongo import display_db_stats
+#from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
+from db_crud import DB_CRUD
+from db_object import DB_Object
+import json
+import numpy as np
 
-HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
-PORT_NUMBER = 9000
 
+SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
+SV_PORT_NUMBER = 9000
 
-class BufferedReadFile(object):
+DB_HOST_NAME = 'localhost'
+DB_PORT_NUMBER = 27017
 
-    def __init__(self, real_file):
-        self.file = real_file
-        self.buffer = ""
-
-    def read(self, size=-1):
-        buf = self.file.read(size)
-        self.buffer += buf
-        return buf
-
-    def readline(self, size=-1):
-        buf = self.file.readline(size)
-        self.buffer += buf
-        return buf
-
-    def flush(self):
-        self.file.flush()
-
-    def close(self):
-        self.file.close()
+PEOPLE_DB = None
+PRODUCTS_DB = None
+INGREDIENTS_DB = None
+COMODEGENIC_DB = None
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -67,19 +62,13 @@ class MyHandler(BaseHTTPRequestHandler):
         s.wfile.write("<p>You accessed path: %s</p>" % s.path)
         s.wfile.write("</body></html>")
 
-    def handle_one_request(self):
-        # Wrap the rfile in the buffering file object so that the raw header block
-        # can be written to stdout after it is parsed.
-        self.rfile = BufferedReadFile(self.rfile)
-        BaseHTTPServer.BaseHTTPRequestHandler.handle_one_request(self)
-
     def do_POST(s):
 
         if s.path == '/barcode':
             length = s.headers['content-length']
             data = s.rfile.read(int(length))
             decoded = data.decode()
-            print (decoded)
+            print(decoded)
             with open(s.store_path, 'w') as fh:
                 fh.write(decoded)
 
@@ -90,9 +79,9 @@ class MyHandler(BaseHTTPRequestHandler):
             length = s.headers['content-length']
             data = s.rfile.read(int(length))
             decoded = data.decode()
-            print (decoded)
+            print(decoded)
             search_str = re.search('(?<==)\w+', str(decoded))
-            print (search_str.group(0))
+            print(search_str.group(0))
             # import ingredient score and search and return score of the search term
             with open('ewg_ingredients.json') as jsondata:
                 ingredients = json.load(jsondata)
@@ -106,7 +95,7 @@ class MyHandler(BaseHTTPRequestHandler):
             record_filter = ewg_ingredient.ingredient_name == matched_term
             matched_record = ewg_ingredient[record_filter][s.record_data]
             results = matched_record.to_json(orient='index')
-            print (results)
+            print(results)
 
             s.do_HEAD()
             s.wfile.write(results.encode("utf-8"))
@@ -137,7 +126,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             s.send_response(200)
             s.end_headers()
-            print (len(body))
+            print(len(body))
             with open(s.upload_path, 'wb') as fh:
                 fh.write(body)
 
@@ -155,7 +144,7 @@ class MyHandler(BaseHTTPRequestHandler):
             if chunk_size == 0:
                 # Read through any trailer fields.
                 trailer_line = self.rfile.readline()
-                print (trailer_line)
+                print(trailer_line)
                 while trailer_line.strip() != '':
                     trailer_line = self.rfile.readline()
                     # Read the chunk size.
@@ -177,16 +166,28 @@ class MyHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--host', help='Server hostname', default=HOST_NAME)
-    parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
+    parser.add_argument('-o', '--server_host', help='Server hostname', default=SV_HOST_NAME)
+    parser.add_argument('-p', '--server_port', help='Server port', default=SV_PORT_NUMBER)
+    parser.add_argument('-m', '--db_host', help='Database hostname', default=DB_HOST_NAME)
+    parser.add_argument('-n', '--db_port', help='Database port', default=DB_PORT_NUMBER)
     args = parser.parse_args()
 
+    # App databases
+    PEOPLE_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='people')
+    PRODUCTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='products')
+    INGREDIENTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='ingredients')
+    COMODEGENIC_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='comodegenic')
+    display_db_stats(args.db_host, args.db_port)
+
+    # Startup App server
     server_class = HTTPServer
-    httpd = server_class((args.host, args.port), MyHandler)
-    print (time.asctime(), "Server Starts - %s:%s" % (args.host, args.port))
+    httpd = server_class((args.server_host, args.server_port), MyHandler)
+    print(time.asctime(), "Server Starts - %s:%s" % (args.server_host, args.server_port))
+
     try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
+        httpd.serve_forever()  # Server running here
+    except KeyboardInterrupt:  # Server stops on keyboard interrupt
         pass
+
     httpd.server_close()
-    print (time.asctime(), "Server Stops - %s:%s" % (args.host, args.port))
+    print(time.asctime(), "Server Stops - %s:%s" % (args.server_host, args.server_port))
