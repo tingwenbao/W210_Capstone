@@ -9,6 +9,7 @@ import re
 import json
 import pandas as pd
 import argparse
+from urllib.parse import unquote_plus
 from load_data_to_mongo import display_db_stats
 #from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
@@ -79,9 +80,10 @@ class MyHandler(BaseHTTPRequestHandler):
             length = s.headers['content-length']
             data = s.rfile.read(int(length))
             decoded = data.decode()
-            print(decoded)
-            search_str = re.search('(?<==)\w+', str(decoded))
-            print(search_str.group(0))
+            search_str = unquote_plus(str(decoded).replace('search_term=', ''))
+
+            print('SEARCH_STR: ', search_str)
+
             # import ingredient score and search and return score of the search term
             with open('ewg_ingredients.json') as jsondata:
                 ingredients = json.load(jsondata)
@@ -89,7 +91,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
             matched_term = process.extract(
-                search_str.group(0),
+                search_str,
                 ewg_ingredient['ingredient_name'],
                 limit=1)[0][0]
             record_filter = ewg_ingredient.ingredient_name == matched_term
