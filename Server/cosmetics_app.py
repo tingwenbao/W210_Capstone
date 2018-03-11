@@ -1,46 +1,49 @@
+#!/usr/bin/env python3
+'''
+Cosmetics app server
+'''
 import time
 import os
-import BaseHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import re
 import json
 import pandas as pd
-from fuzzywuzzy import fuzz
+import argparse
+from urllib.parse import unquote_plus
+from load_data_to_mongo import display_db_stats
+#from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
-
-HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
-PORT_NUMBER = 9000
-
-class BufferedReadFile(object):
-
-      def __init__(self, real_file):
-            self.file = real_file
-            self.buffer = ""
-
-      def read(self, size=-1):
-            buf = self.file.read(size)
-            self.buffer += buf
-            return buf
-
-      def readline(self, size=-1):
-            buf = self.file.readline(size)
-            self.buffer += buf
-            return buf
-
-      def flush(self):
-            self.file.flush()
-
-      def close(self):
-            self.file.close()
+from db_crud import DB_CRUD
+from db_object import DB_Object
+import json
+import numpy as np
 
 
+SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
+SV_PORT_NUMBER = 9000
 
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+DB_HOST_NAME = 'localhost'
+DB_PORT_NUMBER = 27017
+
+PEOPLE_DB = None
+PRODUCTS_DB = None
+INGREDIENTS_DB = None
+COMODEGENIC_DB = None
+
+
+class MyHandler(BaseHTTPRequestHandler):
     store_path = os.path.join(os.curdir, 'store')
     upload_path = os.path.join(os.curdir, 'upload.jpg')
-    
+    record_data = [
+        'ingredient_name',
+        'ingredient_score',
+        'dev_reprod_tox_score',
+        'allergy_imm_tox_score',
+        'cancer_score']
+
     raw_request = ''
-    response_code= 500
+    response_code = 500
     response_body = ''
 
     def do_HEAD(s):
@@ -60,20 +63,13 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         s.wfile.write("<p>You accessed path: %s</p>" % s.path)
         s.wfile.write("</body></html>")
 
-    def handle_one_request(self):
-        # Wrap the rfile in the buffering file object so that the raw header block
-        # can be written to stdout after it is parsed.
-        self.rfile = BufferedReadFile(self.rfile)
-        BaseHTTPServer.BaseHTTPRequestHandler.handle_one_request(self)
-
-
     def do_POST(s):
-        
+
         if s.path == '/barcode':
             length = s.headers['content-length']
             data = s.rfile.read(int(length))
             decoded = data.decode()
-            print (decoded)
+            print(decoded)
             with open(s.store_path, 'w') as fh:
                 fh.write(decoded)
 
@@ -84,26 +80,30 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             length = s.headers['content-length']
             data = s.rfile.read(int(length))
             decoded = data.decode()
-            print (decoded)
-            search_str = re.search('(?<==)\w+',str(decoded))
-            print (search_str.group(0))
+            search_str = unquote_plus(str(decoded).replace('search_term=', ''))
+
+            print('SEARCH_STR: ', search_str)
+
             # import ingredient score and search and return score of the search term
             with open('ewg_ingredients.json') as jsondata:
                 ingredients = json.load(jsondata)
                 jsondata.close()
 
             ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
-            matched_term = process.extract(search_str.group(0), ewg_ingredient['ingredient_name'], limit=1)[0][0]
-            matched_record = ewg_ingredient[ewg_ingredient.ingredient_name==matched_term][['ingredient_name', 'ingredient_score', 'dev_reprod_tox_score', 'allergy_imm_tox_score','cancer_score']]
+            matched_term = process.extract(
+                search_str,
+                ewg_ingredient['ingredient_name'],
+                limit=1)[0][0]
+            record_filter = ewg_ingredient.ingredient_name == matched_term
+            matched_record = ewg_ingredient[record_filter][s.record_data]
             results = matched_record.to_json(orient='index')
-            print (results)
-            
+            print(results)
+
             s.do_HEAD()
             s.wfile.write(results.encode("utf-8"))
-                                                                                                                            
 
         elif s.path == '/upload':
-            print "recognize /upload"
+            print("recognize /upload")
 
             MyHandler.raw_request = s.rfile.buffer
             s.rfile.buffer = ''
@@ -121,19 +121,18 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 # value to ensure that any gzip stream can be decoded. The offset of 16
                 # specifies that the stream to decompress will be formatted with a gzip
                 # wrapper.
-                print "gzip"
+                print("gzip")
                 body = zlib.decompress(body, 16 + 15)
 
             MyHandler.raw_request += body
 
             s.send_response(200)
             s.end_headers()
-            print len(body)
-            with open(s.upload_path,'wb') as fh:
-                  fh.write(body)
-                  
+            print(len(body))
+            with open(s.upload_path, 'wb') as fh:
+                fh.write(body)
 
- # below functions is for handling chunked response for photos           
+ # below functions is for handling chunked response for photos
     def handle_chunked_encoding(self):
 
         body = ''
@@ -147,7 +146,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if chunk_size == 0:
                 # Read through any trailer fields.
                 trailer_line = self.rfile.readline()
-                print trailer_line
+                print(trailer_line)
                 while trailer_line.strip() != '':
                     trailer_line = self.rfile.readline()
                     # Read the chunk size.
@@ -166,16 +165,31 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(400)  # Bad request.
             return -1
         return int(chunk_size_and_ext_line[:chunk_size_end], base=16)
-                                                                                                                                                        
-    
-            
+
 if __name__ == '__main__':
-      server_class = BaseHTTPServer.HTTPServer
-      httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
-      print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
-      try:
-          httpd.serve_forever()
-      except KeyboardInterrupt:
-          pass
-      httpd.server_close()
-      print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--server_host', help='Server hostname', default=SV_HOST_NAME)
+    parser.add_argument('-p', '--server_port', help='Server port', default=SV_PORT_NUMBER)
+    parser.add_argument('-m', '--db_host', help='Database hostname', default=DB_HOST_NAME)
+    parser.add_argument('-n', '--db_port', help='Database port', default=DB_PORT_NUMBER)
+    args = parser.parse_args()
+
+    # App databases
+    PEOPLE_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='people')
+    PRODUCTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='products')
+    INGREDIENTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='ingredients')
+    COMODEGENIC_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='comodegenic')
+    display_db_stats(args.db_host, args.db_port)
+
+    # Startup App server
+    server_class = HTTPServer
+    httpd = server_class((args.server_host, args.server_port), MyHandler)
+    print(time.asctime(), "Server Starts - %s:%s" % (args.server_host, args.server_port))
+
+    try:
+        httpd.serve_forever()  # Server running here
+    except KeyboardInterrupt:  # Server stops on keyboard interrupt
+        pass
+
+    httpd.server_close()
+    print(time.asctime(), "Server Stops - %s:%s" % (args.server_host, args.server_port))
