@@ -36,4 +36,6 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
             return str(o)
+        elif isinstance(o, DB_Object):
+            return str(o.get_as_json())
         return json.JSONEncoder.default(self, o)
