@@ -465,7 +465,7 @@ def dump_db_to_json(host, port, dump_db):
         if not at_least_one_item:
             print("No items in ", repos[repo_idx].collection, " database")
 
-    with open('%s_db_dump.json' % dump_db, 'w') as f:
+    with open('db_dump_%s.json' % dump_db, 'w') as f:
         json.dump(out_list, f, cls=JSONEncoder)
 
 
