@@ -10,7 +10,7 @@ source: https://www.freelancer.com/community/articles/crud-operations-in-mongodb
 import sys
 import argparse
 from db_crud import DB_CRUD
-from db_object import DB_Object
+from db_object import DB_Object, JSONEncoder
 import names
 import json
 import numpy as np
@@ -22,6 +22,7 @@ PORT_NUMBER = 27017
 INGREDIENT_FILE = 'ewg_ingredients.json'
 PRODUCT_FILE = 'ewg_products.json'
 CMDGNC_FILE = 'comodegenic.json'
+DEF_DUMP = "all"
 
 
 def query_yes_no(question, default="yes"):
@@ -407,7 +408,6 @@ def display_db_stats(host, port):
     test_db = DB_CRUD(host, port, db='capstone', col='testing')
     comodegenic_db = DB_CRUD(host, port, db='capstone', col='comodegenic')
 
-    #import ipdb; ipdb.set_trace()
     print("People database stats:")
     print_stat(people_db.stats())
     print("Products database stats:")
@@ -418,6 +418,55 @@ def display_db_stats(host, port):
     print_stat(test_db.stats())
     print("Comodegenic database stats:")
     print_stat(comodegenic_db.stats())
+
+
+def dump_db_to_json(host, port, dump_db):
+    valid = ["people", "products", "ingredients", "testing", "comodegenic", "all"]
+
+    # Connect to dbs
+    people_db = DB_CRUD(host, port, db='capstone', col='people')
+    products_db = DB_CRUD(host, port, db='capstone', col='products')
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    test_db = DB_CRUD(host, port, db='capstone', col='testing')
+    comodegenic_db = DB_CRUD(host, port, db='capstone', col='comodegenic')
+
+    repos = [people_db, products_db, ingredients_db, test_db, comodegenic_db]
+    out_list = {}
+
+    # Input validation
+    if dump_db is None or dump_db is "":
+        return
+    if dump_db not in valid:
+        return
+
+    # Dump the specified DB
+    print("Dumping database/s: '" + dump_db + "'")
+    db_objects = repos[0].read()
+    at_least_one_item = False
+    if dump_db == 'all':
+        for repo in repos:
+            db_objects = repo.read()
+            at_least_one_item = False
+            out_list[repo.collection] = []
+            for p in db_objects:
+                at_least_one_item = True
+                out_list[repo.collection].append(DB_Object.build_from_json(p))
+            if not at_least_one_item:
+                print("No items in ", repo.collection, " database")
+    else:
+        repo_idx = valid.index(dump_db)
+        db_objects = repos[repo_idx].read()
+        at_least_one_item = False
+        out_list[repos[repo_idx].collection] = []
+        for p in db_objects:
+            at_least_one_item = True
+            out_list[repos[repo_idx].collection].append(
+                DB_Object.build_from_json(p).get_as_json())
+        if not at_least_one_item:
+            print("No items in ", repos[repo_idx].collection, " database")
+
+    with open('%s_db_dump.json' % dump_db, 'w') as f:
+        json.dump(out_list, f, cls=JSONEncoder)
 
 
 def main(**kwargs):
@@ -431,6 +480,7 @@ def main(**kwargs):
     c_path = kwargs.get('como', None)
     nuke_all = kwargs.get('nuke', False)
     stats = kwargs.get('stats', False)
+    dump_db = kwargs.get('dump', None)
 
     if test:
         test_db(host, port)
@@ -450,6 +500,9 @@ def main(**kwargs):
             destroy_everything(host, port)
         else:
             print("No action taken")
+
+    if dump_db:
+        dump_db_to_json(host, port, dump_db)
 
 
 if __name__ == '__main__':
@@ -481,6 +534,13 @@ if __name__ == '__main__':
         '--build',
         help='Populate the database with data from JSON files',
         action='store_true')
+    parser.add_argument(
+        '-d',
+        '--dump',
+        help=(
+            'Dump specified DB to JSON, one of '
+            '(all|people|testing|products|ingredients|comodegenic)'),
+        default=DEF_DUMP)
     args = parser.parse_args()
 
     main(**vars(args))
