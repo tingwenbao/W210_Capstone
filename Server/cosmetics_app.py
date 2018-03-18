@@ -42,7 +42,7 @@ class MyHandler(BaseHTTPRequestHandler):
         'allergy_imm_tox_score',
         'cancer_score']
 
-    raw_request = ''
+    raw_request = b''
     response_code = 500
     response_body = ''
 
@@ -105,8 +105,7 @@ class MyHandler(BaseHTTPRequestHandler):
         elif s.path == '/upload':
             print("recognize /upload")
 
-            MyHandler.raw_request = s.rfile.buffer
-            s.rfile.buffer = ''
+            s.rfile.flush()
 
             if s.headers.get('Transfer-Encoding', '').lower() == 'chunked':
                 if 'Content-Length' in s.headers:
@@ -135,7 +134,7 @@ class MyHandler(BaseHTTPRequestHandler):
  # below functions is for handling chunked response for photos
     def handle_chunked_encoding(self):
 
-        body = ''
+        body = b''
         chunk_size = self.read_chunk_size()
         while chunk_size > 0:
             # Read the body.
@@ -147,7 +146,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 # Read through any trailer fields.
                 trailer_line = self.rfile.readline()
                 print(trailer_line)
-                while trailer_line.strip() != '':
+                while trailer_line.strip() != b'':
                     trailer_line = self.rfile.readline()
                     # Read the chunk size.
                 chunk_size = self.read_chunk_size()
@@ -157,10 +156,10 @@ class MyHandler(BaseHTTPRequestHandler):
         # Read the whole line, including the \r\n.
         chunk_size_and_ext_line = self.rfile.readline()
         # Look for a chunk extension.
-        chunk_size_end = chunk_size_and_ext_line.find(';')
+        chunk_size_end = chunk_size_and_ext_line.decode('utf-8').find(';')
         if chunk_size_end == -1:
             # No chunk extensions; just encounter the end of line.
-            chunk_size_end = chunk_size_and_ext_line.find('\r')
+            chunk_size_end = chunk_size_and_ext_line.decode('utf-8').find('\r')
         if chunk_size_end == -1:
             self.send_response(400)  # Bad request.
             return -1
