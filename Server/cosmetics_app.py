@@ -19,6 +19,8 @@ from db_object import DB_Object
 import json
 import numpy as np
 
+from PIL import Image
+from pytesseract import image_to_string, image_to_boxes
 
 SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
 SV_PORT_NUMBER = 9000
@@ -30,6 +32,11 @@ PEOPLE_DB = None
 PRODUCTS_DB = None
 INGREDIENTS_DB = None
 COMODEGENIC_DB = None
+def change_contrast(img, level):
+    factor = (259 * (level + 255)) / (255 * (259 - level))
+    def contrast(c):
+        return 128 + factor * (c - 128)
+    return img.point(contrast)
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -127,9 +134,14 @@ class MyHandler(BaseHTTPRequestHandler):
 
             s.send_response(200)
             s.end_headers()
-            print(len(body))
+            #print(len(body))
             with open(s.upload_path, 'wb') as fh:
                 fh.write(body)
+            # open photo and convert to pure black and white
+            img = change_contrast(Image.open(s.upload_path),100).convert('L')
+            i_result = image_to_string(img)
+            s.wfile.write(i_result.encode("utf-8"))
+            
 
  # below functions is for handling chunked response for photos
     def handle_chunked_encoding(self):
@@ -145,7 +157,7 @@ class MyHandler(BaseHTTPRequestHandler):
             if chunk_size == 0:
                 # Read through any trailer fields.
                 trailer_line = self.rfile.readline()
-                print(trailer_line)
+                #print(trailer_line)
                 while trailer_line.strip() != b'':
                     trailer_line = self.rfile.readline()
                     # Read the chunk size.
@@ -164,7 +176,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_response(400)  # Bad request.
             return -1
         return int(chunk_size_and_ext_line[:chunk_size_end], base=16)
-
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--server_host', help='Server hostname', default=SV_HOST_NAME)
