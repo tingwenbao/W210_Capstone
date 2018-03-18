@@ -1,4 +1,5 @@
 from bson.objectid import ObjectId
+import json
 
 
 class DB_Object(object):
@@ -29,3 +30,12 @@ class DB_Object(object):
 
     def __getitem__(self, k):
         return self.__getattribute__(k)
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        elif isinstance(o, DB_Object):
+            return str(o.get_as_json())
+        return json.JSONEncoder.default(self, o)
