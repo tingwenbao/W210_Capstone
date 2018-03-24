@@ -20,6 +20,7 @@ import json
 import numpy as np
 
 from PIL import Image
+import PIL.ImageOps
 from pytesseract import image_to_string, image_to_boxes
 
 SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
@@ -37,7 +38,37 @@ def change_contrast(img, level):
     def contrast(c):
         return 128 + factor * (c - 128)
     return img.point(contrast)
+def light_background(img):
+    
+    img_b = img.convert('1')
 
+    pixels = img_b.getdata()          # get the pixels as a flattened sequence
+    black_thresh = 50
+    nblack = 0
+    for pixel in pixels:
+        if pixel < black_thresh:
+            nblack += 1
+    n = len(pixels)
+
+    if (nblack / float(n)) > 0.5:
+
+        if img.mode == 'RGBA':
+            r,g,b,a = img.split()
+            rgb_image = Image.merge('RGB', (r,g,b))
+
+            inverted_image = PIL.ImageOps.invert(rgb_image)
+
+            r2,g2,b2 = inverted_image.split()
+
+            final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
+
+            return final_transparent_image.invert(img).convert('L')
+
+        else:
+            return PIL.ImageOps.invert(img).convert('L')
+
+    else:
+        return img.convert(img).convert('L')
 
 class MyHandler(BaseHTTPRequestHandler):
     store_path = os.path.join(os.curdir, 'store')
@@ -138,9 +169,35 @@ class MyHandler(BaseHTTPRequestHandler):
             with open(s.upload_path, 'wb') as fh:
                 fh.write(body)
             # open photo and convert to pure black and white
-            img = change_contrast(Image.open(s.upload_path),100).convert('L')
-            i_result = image_to_string(img)
-            s.wfile.write(i_result.encode("utf-8"))
+            img = change_contrast(Image.open(s.upload_path),100)
+            img_final = light_background(img)
+            i_result = image_to_string(img_final).split("\n")
+            print(i_result)
+            # find the ingredient list part from result and extract it as a list of ingredients
+            start_index = 0
+            end_index = 0
+            for i in range (0,len(i_result)):
+                if ("Ingredient" in i_result[i]) or ("INGREDIENT" in i_result[i]) or ("Ingrédients" in i_result[i]):
+                    start_index = i
+                    if i_result[i+1]=="":
+                        for j in range ((start_index+2),len(i_result)):
+                            if i_result[j]=="":
+                                end_index = j
+                                break
+                            else:
+                                end_index = len(i_result)
+                    else:
+                        for j in range ((start_index+1),len(i_result)):
+                            if i_result[j]=="":
+                                end_index = j
+                                break
+                            else:
+                                end_index = len(i_result)
+            
+            r = i_result[start_index:end_index+1]
+            ingredient_list = ' '.join(r[1:]).split(',')
+            print(ingredient_list)
+            s.wfile.write(ingredient_list)
             
 
  # below functions is for handling chunked response for photos
