@@ -348,7 +348,6 @@ def generate_people(host, port, num_generate_people=10000):
     people_db.nuke()
 
     # Generate random people data
-    print("Generating people data")
     print("Generating race data")
     ppl_race = np.random.choice(races, num_generate_people, p=race_probs)
     print("Generating sex data")
@@ -370,10 +369,11 @@ def generate_people(host, port, num_generate_people=10000):
     p_list = [dict(zip(fields, d)) for d in p_data]
 
     # Get comodegenic products
+    print("Getting list of comodegenic products")
     db_objects = products_db.read(comodegenic={"$gt": 0})
     products = [DB_Object.build_from_json(p) for p in db_objects]
 
-    print("Add people to database")
+    print("Adding people to database")
     # Populate acne causing products for each person
     for person in p_list:
         if person['acne']:
