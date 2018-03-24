@@ -10,6 +10,8 @@
 1. Run `pip install fuzzywuzzy python-Levenshtein names` from terminal
     1.  May also need to run `sudo apt-get install gcc`
 1. Run `conda install pymongo` from terminal
+1. Run `pip install Pillow` from terminal
+1. Run `pip install pytesseract` from terminal
 1. Copy `cosmetics_app.py` to your designated folder on the server
 1. Copy `ewg_ingredients.json` to the same folder
 1. Run `python3 cosmetics_app.py` will start the server for running or testing the app
