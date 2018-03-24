@@ -1,0 +1,340 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="global_declaration" id="a}qv:-Q^4s/hZiyB1Wsd" x="-702" y="-941">
+    <field name="NAME">developer_name</field>
+    <comment pinned="false" h="80" w="160">Set developer so global server address value can be stored. Simply change developer value to change the server address everywhere!</comment>
+    <value name="VALUE">
+      <block type="text" id="-cjD}[WKJKy5GJiYS(Ep">
+        <field name="TEXT">sombiri</field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="@d$;8o5hx$EC=AuauV(j" x="-703" y="-907">
+    <field name="NAME">scanning_result</field>
+    <value name="VALUE">
+      <block type="text" id="j$u:bC,diJHY//?M-,ZK">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="aE;4`5HEh)@LnDM};C/," x="-700" y="-866">
+    <field name="NAME">serverAddress</field>
+    <value name="VALUE">
+      <block type="text" id="`7((:D,%}}$C!o-y)si[">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="component_event" id=":G3NM%$+0!:#-J(y**xC" x="-692" y="-776">
+    <mutation component_type="Form" instance_name="barcode" event_name="Initialize"></mutation>
+    <field name="COMPONENT_SELECTOR">barcode</field>
+    <statement name="DO">
+      <block type="component_set_get" id="UDl/Wo6=8mA|Iv{Pq7A;">
+        <mutation component_type="Button" set_or_get="set" property_name="Enabled" is_generic="false" instance_name="GotoUrl"></mutation>
+        <field name="COMPONENT_SELECTOR">GotoUrl</field>
+        <field name="PROP">Enabled</field>
+        <value name="VALUE">
+          <block type="logic_false" id=",of33D#-p^/3FGl2%,0M">
+            <field name="BOOL">FALSE</field>
+          </block>
+        </value>
+        <next>
+          <block type="controls_if" id="[y%K(a1o10XVuVzV96c}">
+            <mutation elseif="1" else="1"></mutation>
+            <value name="IF0">
+              <block type="logic_compare" id="`]H[6@-Jw.K1S,@ugql6">
+                <field name="OP">EQ</field>
+                <value name="A">
+                  <block type="lexical_variable_get" id=".p(~qyT6Y=tf|)~WY~mp">
+                    <field name="VAR">global developer_name</field>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="text" id="L`Rs/T7Lu5s8x1!#.+bQ">
+                    <field name="TEXT">sombiri</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="component_method" id="zNF!{4z,r~,z6%ZH!gq+">
+                <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
+                <field name="COMPONENT_SELECTOR">TinyDB1</field>
+                <value name="ARG0">
+                  <block type="text" id="fckGmapTH=%Z,oSco}k_">
+                    <field name="TEXT">serverAddress</field>
+                  </block>
+                </value>
+                <value name="ARG1">
+                  <block type="text" id="SaD.*(tf4KzlIP!6ecYk">
+                    <field name="TEXT">http://50.97.227.254:9000</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+            <value name="IF1">
+              <block type="logic_compare" id="n4[@)hR%9sy/wSDQX]Jv">
+                <field name="OP">EQ</field>
+                <value name="A">
+                  <block type="lexical_variable_get" id="t?=LT{R;/ea6-!@O-Q=J">
+                    <field name="VAR">global developer_name</field>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="text" id="9$j%U];[g$*YWw(wocc,">
+                    <field name="TEXT">tingwen</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO1">
+              <block type="component_method" id="iL=$2Ejxzc8Sin_RmnfD">
+                <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
+                <field name="COMPONENT_SELECTOR">TinyDB1</field>
+                <value name="ARG0">
+                  <block type="text" id="h8eI:(apn.1cL#dda6R{">
+                    <field name="TEXT">serverAddress</field>
+                  </block>
+                </value>
+                <value name="ARG1">
+                  <block type="text" id="*o,x_-?s}+,mF!uyY4w:">
+                    <field name="TEXT">http://ec2-35-172-36-92.compute-1.amazonaws.com:9000</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+            <statement name="ELSE">
+              <block type="component_method" id="bi8Q1bOcZhGoFTxiHUtF">
+                <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
+                <field name="COMPONENT_SELECTOR">TinyDB1</field>
+                <value name="ARG0">
+                  <block type="text" id="@9ehhf%pcJ_-.G(jz%W)">
+                    <field name="TEXT">serverAddress</field>
+                  </block>
+                </value>
+                <value name="ARG1">
+                  <block type="text" id="r4gQVUWxzg,ter0?o(e=">
+                    <field name="TEXT">http://ec2-35-172-36-92.compute-1.amazonaws.com:9000</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+            <next>
+              <block type="lexical_variable_set" id="Dg,`Sz;eVo_UVtou?-$4">
+                <field name="VAR">global serverAddress</field>
+                <value name="VALUE">
+                  <block type="component_method" id="G;D)%gy+]`,`1q]N}!aJ">
+                    <mutation component_type="TinyDB" method_name="GetValue" is_generic="false" instance_name="TinyDB1"></mutation>
+                    <field name="COMPONENT_SELECTOR">TinyDB1</field>
+                    <value name="ARG0">
+                      <block type="text" id="{l)d0F%,DCI@Pcc9s$,M">
+                        <field name="TEXT">serverAddress</field>
+                      </block>
+                    </value>
+                    <value name="ARG1">
+                      <block type="text" id="%T,Zy=jdXp`W7);@xOC:">
+                        <field name="TEXT"></field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="%@|.V5kHc(x+0Fn-|[U5" x="-680" y="-246">
+    <mutation component_type="Button" instance_name="Scan_Barcode" event_name="Click"></mutation>
+    <field name="COMPONENT_SELECTOR">Scan_Barcode</field>
+    <statement name="DO">
+      <block type="component_method" id="~7*Bf//VR+s,2fzl(_DN">
+        <mutation component_type="BarcodeScanner" method_name="DoScan" is_generic="false" instance_name="BarcodeScanner1"></mutation>
+        <field name="COMPONENT_SELECTOR">BarcodeScanner1</field>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="*qx=8}8G2:apn1rky9z+" x="-678" y="-167">
+    <mutation component_type="BarcodeScanner" instance_name="BarcodeScanner1" event_name="AfterScan"></mutation>
+    <field name="COMPONENT_SELECTOR">BarcodeScanner1</field>
+    <statement name="DO">
+      <block type="lexical_variable_set" id=")G8uiJwHWZ5jaW:9.|nP">
+        <field name="VAR">global scanning_result</field>
+        <value name="VALUE">
+          <block type="lexical_variable_get" id="]PQ`zc/e!Dq~@OQaTGJ@">
+            <mutation>
+              <eventparam name="result"></eventparam>
+            </mutation>
+            <field name="VAR">result</field>
+          </block>
+        </value>
+        <next>
+          <block type="component_set_get" id="?~PtuZD7*jiQ,j]:0U|I">
+            <mutation component_type="TextBox" set_or_get="set" property_name="Text" is_generic="false" instance_name="ReturnBarcode"></mutation>
+            <field name="COMPONENT_SELECTOR">ReturnBarcode</field>
+            <field name="PROP">Text</field>
+            <value name="VALUE">
+              <block type="lexical_variable_get" id="3O}P3wsM;@{9s80eY`4P">
+                <field name="VAR">global scanning_result</field>
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="s{/iL8xf/6#xI+:I+G_S">
+                <mutation component_type="Button" set_or_get="set" property_name="Enabled" is_generic="false" instance_name="GotoUrl"></mutation>
+                <field name="COMPONENT_SELECTOR">GotoUrl</field>
+                <field name="PROP">Enabled</field>
+                <value name="VALUE">
+                  <block type="logic_boolean" id="*t@SL$kSmkmuuM]*p+cZ">
+                    <field name="BOOL">TRUE</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="5dz0fv23a~w:vE3=@Omr" x="-681" y="-16">
+    <mutation component_type="Button" instance_name="GotoUrl" event_name="Click"></mutation>
+    <field name="COMPONENT_SELECTOR">GotoUrl</field>
+    <statement name="DO">
+      <block type="component_set_get" id="?S`wozm4/JbjlYP~V+V2">
+        <mutation component_type="Web" set_or_get="set" property_name="Url" is_generic="false" instance_name="Web1"></mutation>
+        <field name="COMPONENT_SELECTOR">Web1</field>
+        <field name="PROP">Url</field>
+        <value name="VALUE">
+          <block type="text_join" id="An%v/;Uu?7;*!yLX]hJF">
+            <mutation items="2"></mutation>
+            <value name="ADD0">
+              <block type="lexical_variable_get" id="G=x$:OUp/yVUR3YpS*,u">
+                <field name="VAR">global serverAddress</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="text" id="fEByTBt3wF6bmMS@*ALP">
+                <field name="TEXT">/barcode</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="component_method" id="u)tk2{zDw{6R=UkSK{S?">
+            <mutation component_type="Web" method_name="PostText" is_generic="false" instance_name="Web1"></mutation>
+            <field name="COMPONENT_SELECTOR">Web1</field>
+            <value name="ARG0">
+              <block type="component_method" id="FfM*f$lZ9.3B3I,55;8P">
+                <mutation component_type="Web" method_name="BuildRequestData" is_generic="false" instance_name="Web1"></mutation>
+                <field name="COMPONENT_SELECTOR">Web1</field>
+                <value name="ARG0">
+                  <block type="lists_create_with" id="*B~U801y/2SwVYgte*i8">
+                    <mutation items="2"></mutation>
+                    <value name="ADD0">
+                      <block type="lists_create_with" id="~zR/HB0CP:5B[C%Z3N;$">
+                        <mutation items="2"></mutation>
+                        <value name="ADD0">
+                          <block type="text" id="NI$K4N`Bq%./1P~ec.t?">
+                            <field name="TEXT">barcode</field>
+                          </block>
+                        </value>
+                        <value name="ADD1">
+                          <block type="component_set_get" id="f^Mt-s(5`IIj{fQe0p-o">
+                            <mutation component_type="TextBox" set_or_get="get" property_name="Text" is_generic="false" instance_name="ReturnBarcode"></mutation>
+                            <field name="COMPONENT_SELECTOR">ReturnBarcode</field>
+                            <field name="PROP">Text</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_set_get" id="/e9e.[q:c)2.V4ZO:f5G" disabled="true" x="-683" y="280">
+    <mutation component_type="Web" set_or_get="set" property_name="RequestHeaders" is_generic="false" instance_name="Web1"></mutation>
+    <field name="COMPONENT_SELECTOR">Web1</field>
+    <field name="PROP">RequestHeaders</field>
+    <value name="VALUE">
+      <block type="lists_create_with" id="Qq*d)Bm]yfdS|)Xv|TtJ">
+        <mutation items="2"></mutation>
+        <value name="ADD0">
+          <block type="lists_create_with" id="0~Y0z-`D%[6R#m%4ykoG">
+            <mutation items="2"></mutation>
+            <value name="ADD0">
+              <block type="text" id="{2_s#g8+yYDVutoC](`F">
+                <field name="TEXT">Content-Type</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="text" id="~$hzD~b3eo#!#yA24rX_">
+                <field name="TEXT">application/x-www-form-urlencoded</field>
+              </block>
+            </value>
+          </block>
+        </value>
+      </block>
+    </value>
+  </block>
+  <block type="component_event" id="3$B|p@hSqM?;T?v_m8ja" x="-683" y="428">
+    <mutation component_type="Web" instance_name="Web1" event_name="GotText"></mutation>
+    <field name="COMPONENT_SELECTOR">Web1</field>
+    <statement name="DO">
+      <block type="controls_if" id="yuED}fX,^3JTOut`pYbt">
+        <value name="IF0">
+          <block type="logic_compare" id="e{t8yr%u_QPBi;55#E.+">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="lexical_variable_get" id="rM7?:3!vJVA4C@Ay@z0f">
+                <mutation>
+                  <eventparam name="responseCode"></eventparam>
+                </mutation>
+                <field name="VAR">responseCode</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="[nuT!%^+skgBEA~X|MBN">
+                <field name="NUM">200</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="component_set_get" id="}^MpQdN`D,hz-$5Y.H2y">
+            <mutation component_type="TextBox" set_or_get="set" property_name="Text" is_generic="false" instance_name="TextBox1"></mutation>
+            <field name="COMPONENT_SELECTOR">TextBox1</field>
+            <field name="PROP">Text</field>
+            <value name="VALUE">
+              <block type="lexical_variable_get" id="!eQ5Z?qP+)n5hxA-tnjr">
+                <mutation>
+                  <eventparam name="responseContent"></eventparam>
+                </mutation>
+                <field name="VAR">responseContent</field>
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="$jJPCRJ3,=3`GbCRF/5H">
+                <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="Label1"></mutation>
+                <field name="COMPONENT_SELECTOR">Label1</field>
+                <field name="PROP">Text</field>
+                <value name="VALUE">
+                  <block type="lexical_variable_get" id="Kygo3_[FVB7![CKqwkoM">
+                    <mutation>
+                      <eventparam name="responseContent"></eventparam>
+                    </mutation>
+                    <field name="VAR">responseContent</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <yacodeblocks ya-version="167" language-version="21"></yacodeblocks>
+</xml>

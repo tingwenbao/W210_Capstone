@@ -1,0 +1,529 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="global_declaration" id="@`@ks(W~qSpR_lZq;?rB" x="-752" y="-582">
+    <field name="NAME">searchTerm</field>
+    <value name="VALUE">
+      <block type="text" id="8sKrghA}!J)X.wXd*iz}">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="CQ0s;ItxZkEp;ZN/sM!v" x="-754" y="-545">
+    <field name="NAME">search_result</field>
+    <value name="VALUE">
+      <block type="lists_create_with" id="lh:fy~pO7%#)FT}mGwRf">
+        <mutation items="0"></mutation>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="08OHCu$uV.4,79vS//xe" x="-752" y="-503">
+    <field name="NAME">ingredient_name</field>
+    <value name="VALUE">
+      <block type="text" id="MUOZz#h}rw~]]xERAV:L">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="WI,can8Pq:Kt(9C]n?%D" x="-746" y="-470">
+    <field name="NAME">ingredient_score</field>
+    <value name="VALUE">
+      <block type="math_number" id="bhHZG56gg+lB]iyZkq{f">
+        <field name="NUM">0</field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="1U-?(lK;Qs3A3R:5{3P-" x="-744" y="-439">
+    <field name="NAME">cancer_score</field>
+    <value name="VALUE">
+      <block type="math_number" id="N}1w+R~GAAC/@nxZiJnp">
+        <field name="NUM">0</field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="OBP!{;-eF=N;U4/G;;7y" x="-744" y="-405">
+    <field name="NAME">allergy_imm_tox_score</field>
+    <value name="VALUE">
+      <block type="math_number" id="B1QLV35EDM=09{2wd}U1">
+        <field name="NUM">-1</field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="gFyw!cIOg7c(UT(@Quoj" x="-740" y="-373">
+    <field name="NAME">dev_reprod_tox_score</field>
+    <value name="VALUE">
+      <block type="math_number" id="h*1`WTh_cg~+4eAf1!:T">
+        <field name="NUM">0</field>
+      </block>
+    </value>
+  </block>
+  <block type="component_event" id="W-x]^j:HvZ6{xu7b/wn`" x="-737" y="-311">
+    <mutation component_type="Button" instance_name="start_speaking" event_name="Click"></mutation>
+    <field name="COMPONENT_SELECTOR">start_speaking</field>
+    <statement name="DO">
+      <block type="component_method" id="nA/ZZw%DfSF;Bg?St9n`">
+        <mutation component_type="SpeechRecognizer" method_name="GetText" is_generic="false" instance_name="SpeechRecognizer1"></mutation>
+        <field name="COMPONENT_SELECTOR">SpeechRecognizer1</field>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="lKyQUEMw{9npxqBk^T)," x="-734" y="-232">
+    <mutation component_type="SpeechRecognizer" instance_name="SpeechRecognizer1" event_name="AfterGettingText"></mutation>
+    <field name="COMPONENT_SELECTOR">SpeechRecognizer1</field>
+    <statement name="DO">
+      <block type="component_set_get" id=".yT3?R#OT.ykY|Q9f.)s">
+        <mutation component_type="TextBox" set_or_get="set" property_name="Text" is_generic="false" instance_name="TextBox1"></mutation>
+        <field name="COMPONENT_SELECTOR">TextBox1</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="lexical_variable_get" id="dvyXIupjeU8oT9V;*3KK">
+            <mutation>
+              <eventparam name="result"></eventparam>
+            </mutation>
+            <field name="VAR">result</field>
+          </block>
+        </value>
+        <next>
+          <block type="lexical_variable_set" id="AmqNLBV`d[Ga_N]Hh0vx">
+            <field name="VAR">global searchTerm</field>
+            <value name="VALUE">
+              <block type="lexical_variable_get" id="}Qj~f@w$+pQMCmzczCW,">
+                <mutation>
+                  <eventparam name="result"></eventparam>
+                </mutation>
+                <field name="VAR">result</field>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="5dz0fv23a~w:vE3=@Omr" x="-731" y="-100">
+    <mutation component_type="Button" instance_name="scoresearch" event_name="Click"></mutation>
+    <field name="COMPONENT_SELECTOR">scoresearch</field>
+    <statement name="DO">
+      <block type="component_set_get" id="?S`wozm4/JbjlYP~V+V2">
+        <mutation component_type="Web" set_or_get="set" property_name="Url" is_generic="false" instance_name="Web1"></mutation>
+        <field name="COMPONENT_SELECTOR">Web1</field>
+        <field name="PROP">Url</field>
+        <value name="VALUE">
+          <block type="text" id="V#pWSKJS!Tx:Bw01t~`y">
+            <field name="TEXT">http://ec2-35-172-36-92.compute-1.amazonaws.com:9000/searchterm</field>
+          </block>
+        </value>
+        <next>
+          <block type="component_method" id="u)tk2{zDw{6R=UkSK{S?">
+            <mutation component_type="Web" method_name="PostText" is_generic="false" instance_name="Web1"></mutation>
+            <field name="COMPONENT_SELECTOR">Web1</field>
+            <value name="ARG0">
+              <block type="component_method" id="FfM*f$lZ9.3B3I,55;8P">
+                <mutation component_type="Web" method_name="BuildRequestData" is_generic="false" instance_name="Web1"></mutation>
+                <field name="COMPONENT_SELECTOR">Web1</field>
+                <value name="ARG0">
+                  <block type="lists_create_with" id="*B~U801y/2SwVYgte*i8">
+                    <mutation items="2"></mutation>
+                    <value name="ADD0">
+                      <block type="lists_create_with" id="~zR/HB0CP:5B[C%Z3N;$">
+                        <mutation items="2"></mutation>
+                        <value name="ADD0">
+                          <block type="text" id="NI$K4N`Bq%./1P~ec.t?">
+                            <field name="TEXT">search_term</field>
+                          </block>
+                        </value>
+                        <value name="ADD1">
+                          <block type="component_set_get" id="f^Mt-s(5`IIj{fQe0p-o">
+                            <mutation component_type="TextBox" set_or_get="get" property_name="Text" is_generic="false" instance_name="TextBox1"></mutation>
+                            <field name="COMPONENT_SELECTOR">TextBox1</field>
+                            <field name="PROP">Text</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="3$B|p@hSqM?;T?v_m8ja" x="-732" y="107">
+    <mutation component_type="Web" instance_name="Web1" event_name="GotText"></mutation>
+    <field name="COMPONENT_SELECTOR">Web1</field>
+    <statement name="DO">
+      <block type="controls_if" id="yuED}fX,^3JTOut`pYbt">
+        <value name="IF0">
+          <block type="logic_compare" id="e{t8yr%u_QPBi;55#E.+">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="lexical_variable_get" id="rM7?:3!vJVA4C@Ay@z0f">
+                <mutation>
+                  <eventparam name="responseCode"></eventparam>
+                </mutation>
+                <field name="VAR">responseCode</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="[nuT!%^+skgBEA~X|MBN">
+                <field name="NUM">200</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="lexical_variable_set" id="Ip}Kiz.Ok22%2-IIDcaI">
+            <field name="VAR">global search_result</field>
+            <value name="VALUE">
+              <block type="component_method" id="GoxuHtZhJ`85)H@:f%Sg">
+                <mutation component_type="Web" method_name="JsonTextDecode" is_generic="false" instance_name="Web1"></mutation>
+                <field name="COMPONENT_SELECTOR">Web1</field>
+                <value name="ARG0">
+                  <block type="lexical_variable_get" id="!eQ5Z?qP+)n5hxA-tnjr">
+                    <mutation>
+                      <eventparam name="responseContent"></eventparam>
+                    </mutation>
+                    <field name="VAR">responseContent</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="lexical_variable_set" id="et;W$L9-O7Nz}}lX[Q16">
+                <field name="VAR">global search_result</field>
+                <value name="VALUE">
+                  <block type="lists_select_item" id="y8Wc5@4M~dvP|L]IeRi-">
+                    <value name="LIST">
+                      <block type="lists_select_item" id="Ovt4%*9NO;-[n/ZHyOcm">
+                        <value name="LIST">
+                          <block type="lexical_variable_get" id="QR%v5vWVZeJ+X~#~F]yi">
+                            <field name="VAR">global search_result</field>
+                          </block>
+                        </value>
+                        <value name="NUM">
+                          <block type="math_number" id="ke+Qp=`+qaagH|(aWK0d">
+                            <field name="NUM">1</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="NUM">
+                      <block type="math_number" id="V{m3uRT`nuBBugkuS($d">
+                        <field name="NUM">2</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_forEach" id="^[aHrN*J|vg_cWJsGO3^">
+                    <field name="VAR">item</field>
+                    <value name="LIST">
+                      <block type="lexical_variable_get" id="=ad2));xPneVI}(bXD?y">
+                        <field name="VAR">global search_result</field>
+                      </block>
+                    </value>
+                    <statement name="DO">
+                      <block type="controls_if" id="LR7l(X/t@;vtzUZ@`gSD">
+                        <value name="IF0">
+                          <block type="logic_compare" id="UU%Yv1L!!?OEz-$M8Kl5">
+                            <field name="OP">EQ</field>
+                            <value name="A">
+                              <block type="lists_select_item" id="|g+TIP^QsqP5?%lyV{)z">
+                                <value name="LIST">
+                                  <block type="lexical_variable_get" id="}(ToiLAQD(|d5U:m+L(8">
+                                    <field name="VAR">item</field>
+                                  </block>
+                                </value>
+                                <value name="NUM">
+                                  <block type="math_number" id="m?7;MRo;:NIYyiOU8A3p">
+                                    <field name="NUM">1</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="text" id="V~7*TFJVc#/Mml,jS|q{">
+                                <field name="TEXT">allergy_imm_tox_score</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="lexical_variable_set" id="mRtN=5y{qQ!wwXOXLMy/">
+                            <field name="VAR">global allergy_imm_tox_score</field>
+                            <value name="VALUE">
+                              <block type="lists_select_item" id="cLe.{=Kap=b~K[.9k?$B">
+                                <value name="LIST">
+                                  <block type="lexical_variable_get" id=".o64HF-j=;sz|Bjx^R^5">
+                                    <field name="VAR">item</field>
+                                  </block>
+                                </value>
+                                <value name="NUM">
+                                  <block type="math_number" id="y.!0O5,SD1D5aQd~DJYL">
+                                    <field name="NUM">2</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="controls_if" id="rXInl+QEl/dXIKFin)S^">
+                            <value name="IF0">
+                              <block type="logic_compare" id=":~k*0iiH8tU|,e)hIcF}">
+                                <field name="OP">EQ</field>
+                                <value name="A">
+                                  <block type="lists_select_item" id="[;rq![]^z+p#nRKf-%r]">
+                                    <value name="LIST">
+                                      <block type="lexical_variable_get" id="Ph+zI)Ejn%tM+R;.n]4b">
+                                        <field name="VAR">item</field>
+                                      </block>
+                                    </value>
+                                    <value name="NUM">
+                                      <block type="math_number" id="31FY$dHoVE6MBdLU}~/@">
+                                        <field name="NUM">1</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <block type="text" id="H^Eh$mC60$|%#k{%d(n/">
+                                    <field name="TEXT">ingredient_score</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <statement name="DO0">
+                              <block type="lexical_variable_set" id="NZz%g11Xf4|J2z7Djb!g">
+                                <field name="VAR">global ingredient_score</field>
+                                <value name="VALUE">
+                                  <block type="lists_select_item" id="Ihqrq_MyFM8[+Dd=TP|S">
+                                    <value name="LIST">
+                                      <block type="lexical_variable_get" id="=d@,8qb~8WKTWA,?S`rs">
+                                        <field name="VAR">item</field>
+                                      </block>
+                                    </value>
+                                    <value name="NUM">
+                                      <block type="math_number" id="q7rHDm5w1|UV#:b]~Tdd">
+                                        <field name="NUM">2</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                              </block>
+                            </statement>
+                            <next>
+                              <block type="controls_if" id="FP6*/%)bO5fo!hPKA`Is">
+                                <value name="IF0">
+                                  <block type="logic_compare" id="T6l:vTtKgYd~@W$$B-EN">
+                                    <field name="OP">EQ</field>
+                                    <value name="A">
+                                      <block type="lists_select_item" id="bTR{Qc*AUlgjCc42cSwa">
+                                        <value name="LIST">
+                                          <block type="lexical_variable_get" id="KQ-?Gdh0Fr@V++nQn2[g">
+                                            <field name="VAR">item</field>
+                                          </block>
+                                        </value>
+                                        <value name="NUM">
+                                          <block type="math_number" id="D8sU!ax7yX}sI,Di[qYC">
+                                            <field name="NUM">1</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </value>
+                                    <value name="B">
+                                      <block type="text" id=",NrpF^:l=8@oi}`TyF*1">
+                                        <field name="TEXT">dev_reprod_tox_score</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                                <statement name="DO0">
+                                  <block type="lexical_variable_set" id="ocf+N@P]lfhN_GisVV%F">
+                                    <field name="VAR">global dev_reprod_tox_score</field>
+                                    <value name="VALUE">
+                                      <block type="lists_select_item" id="|!UJn:@NWt0zw|#KbC7|">
+                                        <value name="LIST">
+                                          <block type="lexical_variable_get" id="QFc`n#]=3VMtjKZ$Wx?0">
+                                            <field name="VAR">item</field>
+                                          </block>
+                                        </value>
+                                        <value name="NUM">
+                                          <block type="math_number" id="P%Fg#([N.#sL27fI;bDD">
+                                            <field name="NUM">2</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </statement>
+                                <next>
+                                  <block type="controls_if" id="Tt5c0)A*PmwF`Z8s$2tX">
+                                    <value name="IF0">
+                                      <block type="logic_compare" id="RXaUSqBei|12gz_kH%DE">
+                                        <field name="OP">EQ</field>
+                                        <value name="A">
+                                          <block type="lists_select_item" id="8;|xyTi%*e^~@vAeHKJQ">
+                                            <value name="LIST">
+                                              <block type="lexical_variable_get" id="4Cz7f;dn}Ou=W@)7_!M+">
+                                                <field name="VAR">item</field>
+                                              </block>
+                                            </value>
+                                            <value name="NUM">
+                                              <block type="math_number" id="+Gn+(o/tqquj38AstGyX">
+                                                <field name="NUM">1</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </value>
+                                        <value name="B">
+                                          <block type="text" id="-klSUQ48f-#SKV^Dw.P7">
+                                            <field name="TEXT">cancer_score</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </value>
+                                    <statement name="DO0">
+                                      <block type="lexical_variable_set" id="fVqdw}Z0MR+}7M!qrjJC">
+                                        <field name="VAR">global cancer_score</field>
+                                        <value name="VALUE">
+                                          <block type="lists_select_item" id="brvT]}tu46BC*gA-eFEv">
+                                            <value name="LIST">
+                                              <block type="lexical_variable_get" id="$)H39hsuc~]l,1=kAJ2)">
+                                                <field name="VAR">item</field>
+                                              </block>
+                                            </value>
+                                            <value name="NUM">
+                                              <block type="math_number" id="!~+Tx$vHY6;fvSw]07~P">
+                                                <field name="NUM">2</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </statement>
+                                    <next>
+                                      <block type="controls_if" id="|6YE]x^lhmaH@vw}z-^p">
+                                        <value name="IF0">
+                                          <block type="logic_compare" id="6T!WH7A)zrN3kQ{@rYEx">
+                                            <field name="OP">EQ</field>
+                                            <value name="A">
+                                              <block type="lists_select_item" id="N-]]gyl8xi6$rlZ]840L">
+                                                <value name="LIST">
+                                                  <block type="lexical_variable_get" id="1zMw+UF?V+hoJ2z1qQkp">
+                                                    <field name="VAR">item</field>
+                                                  </block>
+                                                </value>
+                                                <value name="NUM">
+                                                  <block type="math_number" id="3a^~k28:+T.JEw}poMA6">
+                                                    <field name="NUM">1</field>
+                                                  </block>
+                                                </value>
+                                              </block>
+                                            </value>
+                                            <value name="B">
+                                              <block type="text" id="vQGlx;{5Ls,]jC(L?iw9">
+                                                <field name="TEXT">ingredient_name</field>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </value>
+                                        <statement name="DO0">
+                                          <block type="lexical_variable_set" id="d6Xhq-[mkKfF*g!9sTDA">
+                                            <field name="VAR">global ingredient_name</field>
+                                            <value name="VALUE">
+                                              <block type="lists_select_item" id="}`f~Wh_c0HD$iVz-Np6N">
+                                                <value name="LIST">
+                                                  <block type="lexical_variable_get" id="WCCp-dPb/x[Lm[}%`-1R">
+                                                    <field name="VAR">item</field>
+                                                  </block>
+                                                </value>
+                                                <value name="NUM">
+                                                  <block type="math_number" id="F}6w1vtG[tQ@`2F`bqjy">
+                                                    <field name="NUM">2</field>
+                                                  </block>
+                                                </value>
+                                              </block>
+                                            </value>
+                                          </block>
+                                        </statement>
+                                        <next>
+                                          <block type="component_set_get" id="QAdEq,;l[YG56dMLv2XB">
+                                            <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="ingredient_name"></mutation>
+                                            <field name="COMPONENT_SELECTOR">ingredient_name</field>
+                                            <field name="PROP">Text</field>
+                                            <value name="VALUE">
+                                              <block type="lexical_variable_get" id="0!]x-mU@!b$5QuU[#{X3">
+                                                <field name="VAR">global ingredient_name</field>
+                                              </block>
+                                            </value>
+                                            <next>
+                                              <block type="component_set_get" id="=P%$@QL2SmGoHk@G~rSF">
+                                                <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="ingredient_score"></mutation>
+                                                <field name="COMPONENT_SELECTOR">ingredient_score</field>
+                                                <field name="PROP">Text</field>
+                                                <value name="VALUE">
+                                                  <block type="lexical_variable_get" id="__Q@Bs0:jfLTxW|RwX@e">
+                                                    <field name="VAR">global ingredient_score</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="component_set_get" id="wb(Z/sS[5apY?_T17Hoq">
+                                                    <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="cancer_score"></mutation>
+                                                    <field name="COMPONENT_SELECTOR">cancer_score</field>
+                                                    <field name="PROP">Text</field>
+                                                    <value name="VALUE">
+                                                      <block type="lexical_variable_get" id="B|X%1=v.c$RU8OXj^i3?">
+                                                        <field name="VAR">global cancer_score</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="component_set_get" id="P%^R;o~A?la3jRagw.DI">
+                                                        <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="reprod_score"></mutation>
+                                                        <field name="COMPONENT_SELECTOR">reprod_score</field>
+                                                        <field name="PROP">Text</field>
+                                                        <value name="VALUE">
+                                                          <block type="lexical_variable_get" id="REGKwXy.Z1(@,YQiDh9y">
+                                                            <field name="VAR">global dev_reprod_tox_score</field>
+                                                          </block>
+                                                        </value>
+                                                        <next>
+                                                          <block type="component_set_get" id="v%BP!dM}XGI1Fb#{?,_@">
+                                                            <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="imm_score"></mutation>
+                                                            <field name="COMPONENT_SELECTOR">imm_score</field>
+                                                            <field name="PROP">Text</field>
+                                                            <value name="VALUE">
+                                                              <block type="lexical_variable_get" id="#%pM}AX,^blhRS?f%{p.">
+                                                                <field name="VAR">global allergy_imm_tox_score</field>
+                                                              </block>
+                                                            </value>
+                                                          </block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <yacodeblocks ya-version="167" language-version="21"></yacodeblocks>
+</xml>

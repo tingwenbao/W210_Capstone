@@ -1,0 +1,246 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="global_declaration" id="aE;4`5HEh)@LnDM};C/," x="-902" y="-909">
+    <field name="NAME">serverAddress</field>
+    <value name="VALUE">
+      <block type="text" id="`7((:D,%}}$C!o-y)si[">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="?shtofk]w#]b3-@BiALk" x="-903" y="-879">
+    <field name="NAME">imagePath</field>
+    <value name="VALUE">
+      <block type="text" id="($?hK)CkvKsGq$T^%TJs">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="T+_Z:[b!++uyN_-jMj~K" x="-903" y="-848">
+    <field name="NAME">filename</field>
+    <value name="VALUE">
+      <block type="text" id="j{)i79@Nr{mps@YMke5c">
+        <field name="TEXT"></field>
+      </block>
+    </value>
+  </block>
+  <block type="component_event" id="qM|Qy)jZdE:b9)WVdSZK" x="-895" y="-782">
+    <mutation component_type="Form" instance_name="pictureOCR" event_name="Initialize"></mutation>
+    <field name="COMPONENT_SELECTOR">pictureOCR</field>
+    <statement name="DO">
+      <block type="lexical_variable_set" id="1R1Taaa!CvZUB4z;CFdj">
+        <field name="VAR">global serverAddress</field>
+        <value name="VALUE">
+          <block type="component_method" id="G;D)%gy+]`,`1q]N}!aJ">
+            <mutation component_type="TinyDB" method_name="GetValue" is_generic="false" instance_name="TinyDB1"></mutation>
+            <field name="COMPONENT_SELECTOR">TinyDB1</field>
+            <value name="ARG0">
+              <block type="text" id="{l)d0F%,DCI@Pcc9s$,M">
+                <field name="TEXT">serverAddress</field>
+              </block>
+            </value>
+            <value name="ARG1">
+              <block type="text" id="%T,Zy=jdXp`W7);@xOC:">
+                <field name="TEXT"></field>
+              </block>
+            </value>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="G`!YUN?s2}l@mG,vA.tD" x="-893" y="-660">
+    <mutation component_type="Button" instance_name="TakePic" event_name="Click"></mutation>
+    <field name="COMPONENT_SELECTOR">TakePic</field>
+    <statement name="DO">
+      <block type="component_method" id=":E4O73@hoj#u)aoCIjF(">
+        <mutation component_type="Camera" method_name="TakePicture" is_generic="false" instance_name="Camera1"></mutation>
+        <field name="COMPONENT_SELECTOR">Camera1</field>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="_Q8y}xlP#qcBbC0KHXQS" x="-898" y="-584">
+    <mutation component_type="Camera" instance_name="Camera1" event_name="AfterPicture"></mutation>
+    <field name="COMPONENT_SELECTOR">Camera1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="ccF+6^$E^^:*Ui(T[;C0">
+        <mutation component_type="Image" set_or_get="set" property_name="Picture" is_generic="false" instance_name="Image1"></mutation>
+        <field name="COMPONENT_SELECTOR">Image1</field>
+        <field name="PROP">Picture</field>
+        <value name="VALUE">
+          <block type="lexical_variable_get" id="{_hNQtC%y{MK;*2nDEC}">
+            <mutation>
+              <eventparam name="image"></eventparam>
+            </mutation>
+            <field name="VAR">image</field>
+          </block>
+        </value>
+        <next>
+          <block type="component_set_get" id="^q)wi:^V_Du?O2aAX3uH">
+            <mutation component_type="Image" set_or_get="set" property_name="Visible" is_generic="false" instance_name="Image1"></mutation>
+            <field name="COMPONENT_SELECTOR">Image1</field>
+            <field name="PROP">Visible</field>
+            <value name="VALUE">
+              <block type="logic_boolean" id="quF_pu+X0.I!lFLd/TaQ">
+                <field name="BOOL">TRUE</field>
+              </block>
+            </value>
+            <next>
+              <block type="lexical_variable_set" id="K!*0^3xNkz7GWiN}G/xw">
+                <field name="VAR">global imagePath</field>
+                <value name="VALUE">
+                  <block type="lexical_variable_get" id="vj}o~_Fq6C8=|lzY1H;n">
+                    <mutation>
+                      <eventparam name="image"></eventparam>
+                    </mutation>
+                    <field name="VAR">image</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="@[.foKA~*a:v=Qfw+Q{.">
+                    <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="Label1"></mutation>
+                    <field name="COMPONENT_SELECTOR">Label1</field>
+                    <field name="PROP">Text</field>
+                    <value name="VALUE">
+                      <block type="lexical_variable_get" id="UV5H3xmH{g7B@BD2dhJ=">
+                        <field name="VAR">global imagePath</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id=",I:KV$[IKDH/(_rwlEOu" x="-898" y="-403">
+    <mutation component_type="Button" instance_name="post" event_name="Click"></mutation>
+    <field name="COMPONENT_SELECTOR">post</field>
+    <statement name="DO">
+      <block type="local_declaration_statement" id="*v=|B$~f?JmrI`]$4-tv">
+        <mutation>
+          <localname name="list"></localname>
+        </mutation>
+        <field name="VAR0">list</field>
+        <value name="DECL0">
+          <block type="text_split" id="8j=NN295UcfGbI3,+2#)">
+            <mutation mode="SPLIT"></mutation>
+            <field name="OP">SPLIT</field>
+            <value name="TEXT">
+              <block type="lexical_variable_get" id="b;aWx#TngAv(wf=B2_%4">
+                <field name="VAR">global imagePath</field>
+              </block>
+            </value>
+            <value name="AT">
+              <block type="text" id="I.j,xZ?iqM28X68iUPuW">
+                <field name="TEXT">/</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="STACK">
+          <block type="lexical_variable_set" id="u;f%|nl)s]CQmANtUjCz">
+            <field name="VAR">global filename</field>
+            <value name="VALUE">
+              <block type="lists_select_item" id="h|.X^f~]e)ZTCK_E8.4u">
+                <value name="LIST">
+                  <block type="lexical_variable_get" id="W3/,5vq)ZEo_Iyvc2NWG">
+                    <field name="VAR">list</field>
+                  </block>
+                </value>
+                <value name="NUM">
+                  <block type="lists_length" id="EqgrU?PIY;te1sO$5x*r">
+                    <value name="LIST">
+                      <block type="lexical_variable_get" id="UD#)hGJusg{!h$|Q%Z3m">
+                        <field name="VAR">list</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="*IKh5v1|0Bhe9B}oGRS~">
+                <mutation component_type="Web" set_or_get="set" property_name="Url" is_generic="false" instance_name="Web1"></mutation>
+                <field name="COMPONENT_SELECTOR">Web1</field>
+                <field name="PROP">Url</field>
+                <value name="VALUE">
+                  <block type="text_join" id="}y=nB,CK#cvkMy](LJu`">
+                    <mutation items="2"></mutation>
+                    <value name="ADD0">
+                      <block type="lexical_variable_get" id="N^UIik2HBspE4KW/peR0">
+                        <field name="VAR">global serverAddress</field>
+                      </block>
+                    </value>
+                    <value name="ADD1">
+                      <block type="text" id="L#_w@V~9`sTeT:HcLK-M">
+                        <field name="TEXT">/upload</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="component_method" id="RqKLLv-QruM*Zy/TchTt">
+                    <mutation component_type="Web" method_name="PostFile" is_generic="false" instance_name="Web1"></mutation>
+                    <field name="COMPONENT_SELECTOR">Web1</field>
+                    <value name="ARG0">
+                      <block type="lexical_variable_get" id="#oU:{h_6Jx3xhxDQWx,+">
+                        <field name="VAR">global imagePath</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="component_set_get" id="/e9e.[q:c)2.V4ZO:f5G" disabled="true" x="-535" y="-147">
+    <mutation component_type="Web" set_or_get="set" property_name="RequestHeaders" is_generic="false" instance_name="Web1"></mutation>
+    <field name="COMPONENT_SELECTOR">Web1</field>
+    <field name="PROP">RequestHeaders</field>
+    <value name="VALUE">
+      <block type="lists_create_with" id="Qq*d)Bm]yfdS|)Xv|TtJ">
+        <mutation items="2"></mutation>
+        <value name="ADD0">
+          <block type="lists_create_with" id="0~Y0z-`D%[6R#m%4ykoG">
+            <mutation items="2"></mutation>
+            <value name="ADD0">
+              <block type="text" id="{2_s#g8+yYDVutoC](`F">
+                <field name="TEXT">Content-Type</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="text" id="~$hzD~b3eo#!#yA24rX_">
+                <field name="TEXT"> image/jpeg</field>
+              </block>
+            </value>
+          </block>
+        </value>
+      </block>
+    </value>
+  </block>
+  <block type="component_event" id="LPZ8|$S*+2%O10XY!}@+" x="-923" y="-4">
+    <mutation component_type="Web" instance_name="Web1" event_name="GotText"></mutation>
+    <field name="COMPONENT_SELECTOR">Web1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="mM@AK~aW(yLb:ONNn7(T">
+        <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="Label1"></mutation>
+        <field name="COMPONENT_SELECTOR">Label1</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="lexical_variable_get" id="X!OV9pWOh[]cYAId,~_|">
+            <mutation>
+              <eventparam name="responseContent"></eventparam>
+            </mutation>
+            <field name="VAR">responseContent</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <yacodeblocks ya-version="167" language-version="21"></yacodeblocks>
+</xml>
