@@ -11,10 +11,13 @@ import sys
 import argparse
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
-import names
 import json
 import numpy as np
 from pymongo import TEXT
+import base64
+from faker import Faker
+# Fake info generator
+fake = Faker()
 
 HOST_NAME = 'localhost'
 PORT_NUMBER = 27017
@@ -22,7 +25,6 @@ PORT_NUMBER = 27017
 INGREDIENT_FILE = 'ewg_ingredients.json'
 PRODUCT_FILE = 'ewg_products.json'
 CMDGNC_FILE = 'comodegenic.json'
-DEF_DUMP = "all"
 
 
 def query_yes_no(question, default="yes"):
@@ -292,8 +294,15 @@ def generate_age_acne_lists(num_ages):
     return ret_age, ret_acne
 
 
-def generate_people(host, port):
-    num_generate_people = 10000
+def sex_name(s):
+    if s == 'male':
+        return fake.first_name_male() + ' ' + fake.last_name_male()
+    else:
+        return fake.first_name_female() + ' ' + fake.last_name_female()
+
+
+def generate_people(host, port, num_generate_people=10000):
+
     # Variables
     races = [
         'American Indian',
@@ -315,23 +324,50 @@ def generate_people(host, port):
     sex_probs = [0.508, 0.492]
     skin_probs = [1.0/3, 1.0/3, 1.0/3]
 
-    # Generate random people data
-    print("Generating people data")
-    ppl_race = np.random.choice(races, num_generate_people, p=race_probs)
-    ppl_sex = np.random.choice(birth_sexes, num_generate_people, p=sex_probs)
-    ppl_ages, ppl_acne = generate_age_acne_lists(num_generate_people)
-    ppl_skins = np.random.choice(skin_types, num_generate_people, p=skin_probs)
-    ppl_names = [names.get_full_name() for i in range(num_generate_people)]
+    # Make sure user wants to destroy existing DB
+    ppl_qstn = '[WARNING] This will erase the people database. Continue?'
+    if not query_yes_no(ppl_qstn, default='no'):
+        print("No actions taken")
+        return
 
-    # Generate dict of people
-    print("Create people dictionary")
-    fields = ['name', 'race', 'birth_sex', 'age', 'acne', 'skin']
-    p_data = zip(ppl_names, ppl_race, ppl_sex, ppl_ages, ppl_acne, ppl_skins)
-    p_list = [dict(zip(fields, d)) for d in p_data]
+    # Get number of people to generate
+    try:
+        usr_input = int(input("# people to generate: "))
+        num_generate_people = usr_input
+    except ValueError:
+        print(
+            "Invalid input, using default value",
+            num_generate_people)
+        pass
 
     # Connect to DBs
     people_db = DB_CRUD(host, port, db='capstone', col='people')
     products_db = DB_CRUD(host, port, db='capstone', col='products')
+
+    # Erase people DB
+    people_db.nuke()
+
+    # Generate random people data
+    print("Generating people data")
+    print("Generating race data")
+    ppl_race = np.random.choice(races, num_generate_people, p=race_probs)
+    print("Generating sex data")
+    ppl_sex = np.random.choice(birth_sexes, num_generate_people, p=sex_probs)
+    print("Generating age data")
+    ppl_ages, ppl_acne = generate_age_acne_lists(num_generate_people)
+    print("Generating skin data")
+    ppl_skins = np.random.choice(skin_types, num_generate_people, p=skin_probs)
+    print("Generating names")
+    ppl_names = [sex_name(s) for s in ppl_sex]
+    print("Generating ppl authentication")
+    ppl_auths = [base64.b64encode(
+        str(full_name.split(' ')[0]+":1234").encode()) for full_name in ppl_names]
+
+    # Generate dict of people
+    print("Create people dictionary")
+    fields = ['name', 'race', 'birth_sex', 'age', 'acne', 'skin', 'auth']
+    p_data = zip(ppl_names, ppl_race, ppl_sex, ppl_ages, ppl_acne, ppl_skins, ppl_auths)
+    p_list = [dict(zip(fields, d)) for d in p_data]
 
     # Get comodegenic products
     db_objects = products_db.read(comodegenic={"$gt": 0})
@@ -539,8 +575,7 @@ if __name__ == '__main__':
         '--dump',
         help=(
             'Dump specified DB to JSON, one of '
-            '(all|people|testing|products|ingredients|comodegenic)'),
-        default=DEF_DUMP)
+            '(all|people|testing|products|ingredients|comodegenic)'))
     args = parser.parse_args()
 
     main(**vars(args))
