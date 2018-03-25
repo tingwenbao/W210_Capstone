@@ -93,11 +93,11 @@ class DB_CRUD(object):
         '''
         return self.database[self.collection].delete_many({})
 
-    def createIndex(self, fields):
+    def createIndex(self, fields, **kwargs):
         '''
             Creates searchable index for input fields
         '''
-        self.database[self.collection].create_index(fields, default_language='english')
+        self.database[self.collection].create_index(fields, **kwargs)
 
     def stats(self):
         '''

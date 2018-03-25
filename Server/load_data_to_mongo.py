@@ -175,6 +175,19 @@ def build_db(host, port, **kwargs):
     p_path = kwargs.get('p_path', '')
     c_path = kwargs.get('c_path', '')
 
+    # Make sure user wants to destroy existing DB
+    db_qstn = (
+        '[WARNING] This will erase the products, ingredients, '
+        'and comodegenic items databases. Continue?')
+    if not query_yes_no(db_qstn, default='no'):
+        print("No actions taken")
+        return
+
+    # Drop databases
+    products_db.nuke()
+    ingredients_db.nuke()
+    comodegenic_db.nuke()
+
     # Open files and load JSON data, exit if unsuccesful
     print("Attempting to open .json files.")
     try:
@@ -212,7 +225,7 @@ def build_db(host, port, **kwargs):
         search_term = '"' + ingredients_dict[ingredient_id].get('ingredient_name', '') + '"'
         db_objects = comodegenic_db.read(
             **{'$text': {"$search": search_term}})
-        entries = [DB_Object.build_from_json(e) for e in db_objects]
+        entries = [DB_Object.build_from_json(entry) for entry in db_objects]
 
         # Try to find ingredient in comodegenic DB, fall back to synonyms if necessary
         if entries:
@@ -222,7 +235,7 @@ def build_db(host, port, **kwargs):
                 search_term = '"' + synonym + '"'
                 db_objects = comodegenic_db.read(
                     **{'$text': {"$search": search_term}})
-                entries = [DB_Object.build_from_json(e) for e in db_objects]
+                entries = [DB_Object.build_from_json(entry) for entry in db_objects]
                 if entries:
                     ingredients_dict[ingredient_id]['comodegenic'] = int(entries[0]['level'])
                     break
@@ -270,10 +283,17 @@ def build_db(host, port, **kwargs):
     print("Products inserted: {}  Products read: {}".format(prod_ins_len, prod_read_len))
 
     if ing_read_len != ing_ins_len or prod_read_len != prod_ins_len:
-        # Nuke databases to prevent mismatch on retry
-        ingredients_db.nuke()
-        products_db.nuke()
         raise Exception("[FAIL] The number of inserted items does not match!")
+
+    print("Creating search indexes")
+    ingredients_db.createIndex(
+        [('ingredient_name', TEXT), ('synonym_list', TEXT)],
+        weights={'ingredient_name': 4},
+        default_language='english')
+    products_db.createIndex(
+        [('product_name', TEXT)],
+        default_language='english')
+
     print("[SUCCESS] Database is populated")
 
 
