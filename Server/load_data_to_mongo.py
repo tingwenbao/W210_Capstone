@@ -224,7 +224,7 @@ def build_db(host, port, **kwargs):
         # Get comodegenic info
         search_term = '"' + ingredients_dict[ingredient_id].get('ingredient_name', '') + '"'
         db_objects = comodegenic_db.read(
-            **{'$text': {"$search": search_term}})
+            {'$text': {"$search": search_term}})
         entries = [DB_Object.build_from_json(entry) for entry in db_objects]
 
         # Try to find ingredient in comodegenic DB, fall back to synonyms if necessary
@@ -234,7 +234,7 @@ def build_db(host, port, **kwargs):
             for synonym in ingredients_dict[ingredient_id].get('synonym_list', []):
                 search_term = '"' + synonym + '"'
                 db_objects = comodegenic_db.read(
-                    **{'$text': {"$search": search_term}})
+                    {'$text': {"$search": search_term}})
                 entries = [DB_Object.build_from_json(entry) for entry in db_objects]
                 if entries:
                     ingredients_dict[ingredient_id]['comodegenic'] = int(entries[0]['level'])

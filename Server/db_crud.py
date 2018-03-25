@@ -31,26 +31,28 @@ class DB_CRUD(object):
         else:
             raise Exception("Nothing to save, because db_object parameter is None")
 
-    def read(self, **kwargs):
+    def read(self, filter_dict={}, **kwargs):
         '''
             Read an object from the database, if '_id' is None return all DB entries
             args:
                 keys to filter within DB
             returns:
                     A cursor to the documents that match the query criteria
+            Additional info:
+            http://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.find
         '''
-        filter_dict = {}
-        _id = kwargs.get('_id', None)
-        if '_id' in kwargs.keys():
-            del(kwargs['_id'])
-        for (k, v) in kwargs.items():
+
+        _id = filter_dict.get('_id', None)
+        if '_id' in filter_dict.keys():
+            del(filter_dict['_id'])
+        for (k, v) in filter_dict.items():
             if k == '_id':
                 continue
             filter_dict[k] = v
         if _id is None and not filter_dict:
             return self.database[self.collection].find({})
         else:
-            return self.database[self.collection].find(filter_dict)
+            return self.database[self.collection].find(filter_dict, **kwargs)
 
     def update(self, db_object):
         '''
