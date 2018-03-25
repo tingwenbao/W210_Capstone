@@ -26,6 +26,8 @@ INGREDIENT_FILE = 'ewg_ingredients.json'
 PRODUCT_FILE = 'ewg_products.json'
 CMDGNC_FILE = 'comodegenic.json'
 
+UNIQUE_NAMES = {}
+
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via input() and return their answer.
@@ -294,7 +296,30 @@ def generate_age_acne_lists(num_ages):
     return ret_age, ret_acne
 
 
-def sex_name(s):
+def get_unique_username(full_name):
+    '''
+    Create first initial + last name username,
+    ensure it is unique by adding numbers to it. Expand
+    to letter if that fails.
+    '''
+    name_list = full_name.split(' ')
+    uname = name_list[0][0] + name_list[1]
+
+    apnd = ''
+    for i in range(1000):
+        if UNIQUE_NAMES.get(uname, False) is not False:
+            uname = uname.strip(apnd)
+            apnd = str(np.random.choice(1000000))
+            uname = uname + apnd
+        else:
+            UNIQUE_NAMES[uname] = None
+            return uname.lower()
+    apnd = fake.password(length=5, special_chars=False, upper_case=False)
+    uname = uname + apnd
+    return uname.lower()
+
+
+def get_sex_name(s):
     if s == 'male':
         return fake.first_name_male() + ' ' + fake.last_name_male()
     else:
@@ -352,20 +377,21 @@ def generate_people(host, port, num_generate_people=10000):
     ppl_race = np.random.choice(races, num_generate_people, p=race_probs)
     print("Generating sex data")
     ppl_sex = np.random.choice(birth_sexes, num_generate_people, p=sex_probs)
-    print("Generating age data")
+    print("Generating age and acne data")
     ppl_ages, ppl_acne = generate_age_acne_lists(num_generate_people)
     print("Generating skin data")
     ppl_skins = np.random.choice(skin_types, num_generate_people, p=skin_probs)
     print("Generating names")
-    ppl_names = [sex_name(s) for s in ppl_sex]
-    print("Generating ppl authentication")
-    ppl_auths = [base64.b64encode(
-        str(full_name.split(' ')[0]+":1234").encode()) for full_name in ppl_names]
+    ppl_names = [get_sex_name(s) for s in ppl_sex]
+    print("Generating usernames")
+    ppl_unames = [get_unique_username(full_name) for full_name in ppl_names]
+    print("Generating user authentications")
+    ppl_auths = [base64.b64encode(str(u_name+":1234").encode()).decode() for u_name in ppl_unames]
 
     # Generate dict of people
-    print("Create people dictionary")
-    fields = ['name', 'race', 'birth_sex', 'age', 'acne', 'skin', 'auth']
-    p_data = zip(ppl_names, ppl_race, ppl_sex, ppl_ages, ppl_acne, ppl_skins, ppl_auths)
+    print("Creating list of people dicts")
+    fields = ['name', 'race', 'birth_sex', 'age', 'acne', 'skin', 'auth', 'user_name']
+    p_data = zip(ppl_names, ppl_race, ppl_sex, ppl_ages, ppl_acne, ppl_skins, ppl_auths, ppl_unames)
     p_list = [dict(zip(fields, d)) for d in p_data]
 
     # Get comodegenic products
