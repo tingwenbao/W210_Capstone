@@ -15,7 +15,7 @@ from load_data_to_mongo import display_db_stats
 from fuzzywuzzy import process
 
 from db_crud import DB_CRUD
-from db_object import DB_Object
+from db_object import DB_Object, JSONEncoder
 import json
 import numpy as np
 
@@ -33,13 +33,16 @@ PEOPLE_DB = None
 PRODUCTS_DB = None
 INGREDIENTS_DB = None
 COMODEGENIC_DB = None
+
 def change_contrast(img, level):
     factor = (259 * (level + 255)) / (255 * (259 - level))
     def contrast(c):
         return 128 + factor * (c - 128)
     return img.point(contrast)
+
+
 def light_background(img):
-    
+
     img_b = img.convert('1')
 
     pixels = img_b.getdata()          # get the pixels as a flattened sequence
@@ -70,6 +73,7 @@ def light_background(img):
     else:
         return img.convert(img).convert('L')
 
+
 class MyHandler(BaseHTTPRequestHandler):
     store_path = os.path.join(os.curdir, 'store')
     upload_path = os.path.join(os.curdir, 'upload.jpg')
@@ -84,123 +88,187 @@ class MyHandler(BaseHTTPRequestHandler):
     response_code = 500
     response_body = ''
 
+    def check_authentication(s, auth_str):
+        """ Check geven credentials against DB"""
+        in_auth = auth_str.strip().strip('Basic ')
+        query = PEOPLE_DB.read({'auth': in_auth}, limit=1)
+        if query.count() == 1:
+            s.person_data = DB_Object.build_from_json(query[0])
+            return True
+        else:
+            return False
+
     def do_HEAD(s):
         s.send_response(200)
         s.send_header("Content-type", "text/json; charset=utf-8")
         s.end_headers()
 
-    def do_GET(s):
-        """Respond to a GET request."""
-        s.send_response(200)
-        s.send_header("Content-type", "text/json; charset=utf-8")
+    def do_AUTHHEAD(s):
+        print("[do_AUTHHEAD] Send Auth Request")
+        s.send_response(401)
+        s.send_header('WWW-Authenticate', 'Basic realm=\"Test\"')
+        s.send_header('Content-type', 'text/html')
         s.end_headers()
-        s.wfile.write("<html><head><title>Title goes here.</title></head>")
-        s.wfile.write("<body><p>This is a test.</p>")
-        # If someone went to "http://something.somewhere.net/foo/bar/",
-        # then s.path equals "/foo/bar/".
-        s.wfile.write("<p>You accessed path: %s</p>" % s.path)
-        s.wfile.write("</body></html>")
+
+    def do_GET(s):
+
+        ''' Present frontpage with user authentication. '''
+        if s.headers.get('Authorization') is None:
+            s.do_AUTHHEAD()
+
+            response = {
+                'success': False,
+                'error': 'No auth header received'
+            }
+
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
+        elif s.check_authentication(s.headers.get('Authorization', False)):
+            """Respond to a GET request."""
+            s.send_response(200)
+            s.send_header("Content-type", "text/json; charset=utf-8")
+            s.end_headers()
+
+            # Send user data to app
+            response = s.person_data
+            s.wfile.write(bytes(json.dumps(response, cls=JSONEncoder), 'utf-8'))
+
+        else:
+            s.do_AUTHHEAD()
+
+            response = {
+                'success': False,
+                'error': 'Invalid credentials'
+            }
+
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
     def do_POST(s):
+        print('[do_POST]')
+        print(s.headers)
+        print(s.rfile)
+        ''' Present frontpage with user authentication. '''
+        if s.headers.get('Authorization') is None:
+            s.do_AUTHHEAD()
 
-        if s.path == '/barcode':
-            length = s.headers['content-length']
-            data = s.rfile.read(int(length))
-            decoded = data.decode()
-            print(decoded)
-            with open(s.store_path, 'w') as fh:
-                fh.write(decoded)
+            response = {
+                'success': False,
+                'error': 'No auth header received'
+            }
 
-            s.do_HEAD()
-            s.wfile.write("test")
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
+            pass
+        elif s.check_authentication(s.headers.get('Authorization', False)):
+            # Authenticated
+            if s.path == '/barcode':
+                length = s.headers['content-length']
+                data = s.rfile.read(int(length))
+                decoded = data.decode()
+                print(decoded)
+                with open(s.store_path, 'w') as fh:
+                    fh.write(decoded)
 
-        if s.path == '/searchterm':
-            length = s.headers['content-length']
-            data = s.rfile.read(int(length))
-            decoded = data.decode()
-            search_str = unquote_plus(str(decoded).replace('search_term=', ''))
+                s.do_HEAD()
+                s.wfile.write("test")
 
-            print('SEARCH_STR: ', search_str)
+            if s.path == '/searchterm':
+                length = s.headers['content-length']
+                data = s.rfile.read(int(length))
+                decoded = data.decode()
+                search_str = unquote_plus(str(decoded).replace('search_term=', ''))
 
-            # import ingredient score and search and return score of the search term
-            with open('ewg_ingredients.json') as jsondata:
-                ingredients = json.load(jsondata)
-                jsondata.close()
+                print('SEARCH_STR: ', search_str)
 
-            ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
-            matched_term = process.extract(
-                search_str,
-                ewg_ingredient['ingredient_name'],
-                limit=1)[0][0]
-            record_filter = ewg_ingredient.ingredient_name == matched_term
-            matched_record = ewg_ingredient[record_filter][s.record_data]
-            results = matched_record.to_json(orient='index')
-            print(results)
+                # REPLACE WITH DB CALL
+                # import ingredient score and search and return score of the search term
+                with open('ewg_ingredients.json') as jsondata:
+                    ingredients = json.load(jsondata)
+                    jsondata.close()
 
-            s.do_HEAD()
-            s.wfile.write(results.encode("utf-8"))
+                ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
+                matched_term = process.extract(
+                    search_str,
+                    ewg_ingredient['ingredient_name'],
+                    limit=1)[0][0]
+                record_filter = ewg_ingredient.ingredient_name == matched_term
+                matched_record = ewg_ingredient[record_filter][s.record_data]
+                results = matched_record.to_json(orient='index')
+                print(results)
 
-        elif s.path == '/upload':
-            print("recognize /upload")
+                s.do_HEAD()
+                s.wfile.write(results.encode("utf-8"))
 
-            s.rfile.flush()
+            elif s.path == '/upload':
+                print("recognize /upload")
 
-            if s.headers.get('Transfer-Encoding', '').lower() == 'chunked':
-                if 'Content-Length' in s.headers:
-                    raise AssertionError
-                body = s.handle_chunked_encoding()
-            else:
-                length = int(s.headers.get('Content-Length', -1))
-                body = s.rfile.read(length)
+                s.rfile.flush()
 
-            if s.headers.get('Content-Encoding', '').lower() == 'gzip':
-                # 15 is the value of |wbits|, which should be at the maximum possible
-                # value to ensure that any gzip stream can be decoded. The offset of 16
-                # specifies that the stream to decompress will be formatted with a gzip
-                # wrapper.
-                print("gzip")
-                body = zlib.decompress(body, 16 + 15)
+                if s.headers.get('Transfer-Encoding', '').lower() == 'chunked':
+                    if 'Content-Length' in s.headers:
+                        raise AssertionError
+                    body = s.handle_chunked_encoding()
+                else:
+                    length = int(s.headers.get('Content-Length', -1))
+                    body = s.rfile.read(length)
 
-            MyHandler.raw_request += body
+                if s.headers.get('Content-Encoding', '').lower() == 'gzip':
+                    # 15 is the value of |wbits|, which should be at the maximum possible
+                    # value to ensure that any gzip stream can be decoded. The offset of 16
+                    # specifies that the stream to decompress will be formatted with a gzip
+                    # wrapper.
+                    print("gzip")
+                    body = zlib.decompress(body, 16 + 15)
 
-            s.send_response(200)
-            s.end_headers()
-            #print(len(body))
-            with open(s.upload_path, 'wb') as fh:
-                fh.write(body)
-            # open photo and convert to pure black and white
-            img = change_contrast(Image.open(s.upload_path),100)
-            img_final = light_background(img)
-            i_result = image_to_string(img_final).split("\n")
-            print(i_result)
-            # find the ingredient list part from result and extract it as a list of ingredients
-            start_index = 0
-            end_index = 0
-            for i in range (0,len(i_result)):
-                if ("Ingredient" in i_result[i]) or ("INGREDIENT" in i_result[i]) or ("Ingrédients" in i_result[i]):
-                    start_index = i
-                    if i_result[i+1]=="":
-                        for j in range ((start_index+2),len(i_result)):
-                            if i_result[j]=="":
-                                end_index = j
-                                break
-                            else:
-                                end_index = len(i_result)
-                    else:
-                        for j in range ((start_index+1),len(i_result)):
-                            if i_result[j]=="":
-                                end_index = j
-                                break
-                            else:
-                                end_index = len(i_result)
-            
-            r = i_result[start_index:end_index+1]
-            ingredient_list = ' '.join(r[1:]).split(',')
-            print(ingredient_list)
-            s.wfile.write(ingredient_list)
-            
+                MyHandler.raw_request += body
 
- # below functions is for handling chunked response for photos
+                s.send_response(200)
+                s.end_headers()
+                #print(len(body))
+                with open(s.upload_path, 'wb') as fh:
+                    fh.write(body)
+                # open photo and convert to pure black and white
+                img = change_contrast(Image.open(s.upload_path),100)
+                img_final = light_background(img)
+                i_result = image_to_string(img_final).split("\n")
+                print(i_result)
+                # find the ingredient list part from result and extract it as a list of ingredients
+                start_index = 0
+                end_index = 0
+                for i in range (0,len(i_result)):
+                    if ("Ingredient" in i_result[i]) or ("INGREDIENT" in i_result[i]) or ("Ingrédients" in i_result[i]):
+                        start_index = i
+                        if i_result[i+1]=="":
+                            for j in range ((start_index+2),len(i_result)):
+                                if i_result[j]=="":
+                                    end_index = j
+                                    break
+                                else:
+                                    end_index = len(i_result)
+                        else:
+                            for j in range ((start_index+1),len(i_result)):
+                                if i_result[j]=="":
+                                    end_index = j
+                                    break
+                                else:
+                                    end_index = len(i_result)
+
+                r = i_result[start_index:end_index+1]
+                ingredient_list = ' '.join(r[1:]).split(',')
+                print(ingredient_list)
+                s.wfile.write(ingredient_list)
+
+            pass
+        else:
+            s.do_AUTHHEAD()
+
+            response = {
+                'success': False,
+                'error': 'Invalid credentials'
+            }
+
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
+            pass
+
+    # below functions is for handling chunked response for photos
     def handle_chunked_encoding(self):
 
         body = b''
@@ -233,7 +301,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_response(400)  # Bad request.
             return -1
         return int(chunk_size_and_ext_line[:chunk_size_end], base=16)
-    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--server_host', help='Server hostname', default=SV_HOST_NAME)
