@@ -15,7 +15,7 @@ class DB_Object(object):
 
     def get_as_json(self):
         """ Method returns the JSON representation of the DB_Object object, which can be saved to MongoDB """
-        return self.__dict__
+        return self.__dict__.copy()
 
     @staticmethod
     def build_from_json(json_data):
@@ -37,5 +37,8 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         elif isinstance(o, DB_Object):
-            return str(o.get_as_json())
+            o = o.get_as_json()
+            o['_id'] = str(o.get('_id', None))
+            o['acne_products'] = [str(obj_id) for obj_id in o.get('acne_products', [])]
+            return str(o)
         return json.JSONEncoder.default(self, o)
