@@ -5,11 +5,12 @@ Cosmetics app server
 import time
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import unquote_plus
+import cgi
 import re
 import json
 import pandas as pd
 import argparse
-from urllib.parse import unquote_plus
 from load_data_to_mongo import display_db_stats
 #from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
@@ -109,6 +110,10 @@ class MyHandler(BaseHTTPRequestHandler):
         else:
             return False
 
+    def create_new_user(s, recv_data):
+
+        return PEOPLE_DB.create(DB_Object.build_from_json(recv_data))
+
     def get_prod_suggestions(s, search_str):
         """ Check DB to see if username is avaialble"""
         if not search_str:
@@ -117,9 +122,11 @@ class MyHandler(BaseHTTPRequestHandler):
         query = PRODUCTS_DB.read(
             {'$text': {'$search': unquote_plus(search_str)}},
             limit=10,
-            projection={'product_name': True, '_id': False, 'score': {'$meta': 'textScore'}})
+            projection={'product_name': True, 'score': {'$meta': 'textScore'}})
 
-        return [item['product_name'] for item in query.sort([('score', {'$meta': 'textScore'})])]
+        sorted_query = query.sort([('score', {'$meta': 'textScore'})])
+
+        return [{"product_id": str(item['_id']), "product_name": item['product_name']} for item in sorted_query]
 
     def do_HEAD(s):
         s.send_response(200)
@@ -189,6 +196,32 @@ class MyHandler(BaseHTTPRequestHandler):
             response = {
                 'prod_suggestions': s.get_prod_suggestions(search_str),
             }
+
+            s.do_HEAD()
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
+
+        elif s.path == '/createuser':
+            form = cgi.FieldStorage(
+                fp=s.rfile,
+                headers=s.headers,
+                environ={'REQUEST_METHOD': 'POST'}
+            )
+            recv_data = {
+                'user_name': form.getvalue("user_name"),
+                'name': form.getvalue("name"),
+                'auth': form.getvalue("auth"),
+                'age': int(form.getvalue("age")),
+                'race': form.getvalue("race"),
+                'skin': form.getvalue("skin"),
+                'birth_sex': form.getvalue("birth_sex"),
+                'has_acne': bool(form.getvalue("has_acne")),
+                'acne_products': json.loads(form.getvalue("acne_products"))}
+            print(recv_data)
+            status = s.create_new_user(recv_data)
+            if status.acknowledged:
+                response = {"create_user": str(status.inserted_id)}
+            else:
+                response = {"create_user": None}
 
             s.do_HEAD()
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))

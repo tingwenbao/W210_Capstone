@@ -27,7 +27,7 @@ class DB_CRUD(object):
                 - Exception if db_object is None
         '''
         if db_object is not None:
-            return self.database[self.collection].insert(db_object.get_as_json())
+            return self.database[self.collection].insert_one(db_object.get_as_json())
         else:
             raise Exception("Nothing to save, because db_object parameter is None")
 
