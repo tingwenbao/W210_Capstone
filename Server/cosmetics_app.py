@@ -98,6 +98,29 @@ class MyHandler(BaseHTTPRequestHandler):
         else:
             return False
 
+    def check_username_availability(s, search_str):
+        """ Check DB to see if username is avaialble"""
+        if not search_str:
+            return False
+
+        query = PEOPLE_DB.read({'user_name': search_str}, limit=1)
+        if query.count() == 0:
+            return True
+        else:
+            return False
+
+    def get_prod_suggestions(s, search_str):
+        """ Check DB to see if username is avaialble"""
+        if not search_str:
+            return False
+
+        query = PRODUCTS_DB.read(
+            {'$text': {'$search': unquote_plus(search_str)}},
+            limit=10,
+            projection={'product_name': True, '_id': False, 'score': {'$meta': 'textScore'}})
+
+        return [item['product_name'] for item in query.sort([('score', {'$meta': 'textScore'})])]
+
     def do_HEAD(s):
         s.send_response(200)
         s.send_header("Content-type", "text/json; charset=utf-8")
@@ -130,6 +153,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             # Send user data to app
             response = s.person_data
+            print('User Athenticated', json.dumps(response, cls=JSONEncoder))
             s.wfile.write(bytes(json.dumps(response, cls=JSONEncoder), 'utf-8'))
 
         else:
@@ -143,11 +167,33 @@ class MyHandler(BaseHTTPRequestHandler):
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
     def do_POST(s):
-        print('[do_POST]')
-        print(s.headers)
-        print(s.rfile)
         ''' Present frontpage with user authentication. '''
-        if s.headers.get('Authorization') is None:
+        # Check if username is available
+        if s.path == '/checkuser':
+            data = s.rfile.read(int(s.headers['content-length']))
+            search_str = data.decode().replace('username=', '')
+            print("input username:", search_str)
+
+            response = {
+                'uname_unique': s.check_username_availability(search_str),
+            }
+
+            s.do_HEAD()
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
+
+        elif s.path == '/suggestproducts':
+            data = s.rfile.read(int(s.headers['content-length']))
+            search_str = data.decode().replace('search_term=', '')
+            print("input search:", search_str)
+
+            response = {
+                'prod_suggestions': s.get_prod_suggestions(search_str),
+            }
+
+            s.do_HEAD()
+            s.wfile.write(bytes(json.dumps(response), 'utf-8'))
+
+        elif s.headers.get('Authorization') is None:
             s.do_AUTHHEAD()
 
             response = {
