@@ -1,5 +1,5 @@
 <xml xmlns="http://www.w3.org/1999/xhtml">
-  <block type="global_declaration" id="@`@ks(W~qSpR_lZq;?rB" x="-752" y="-582">
+  <block type="global_declaration" id="@`@ks(W~qSpR_lZq;?rB" x="0" y="0">
     <field name="NAME">searchTerm</field>
     <value name="VALUE">
       <block type="text" id="8sKrghA}!J)X.wXd*iz}">
@@ -7,7 +7,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="CQ0s;ItxZkEp;ZN/sM!v" x="-754" y="-545">
+  <block type="global_declaration" id="CQ0s;ItxZkEp;ZN/sM!v" x="0" y="0">
     <field name="NAME">search_result</field>
     <value name="VALUE">
       <block type="lists_create_with" id="lh:fy~pO7%#)FT}mGwRf">
@@ -15,7 +15,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="08OHCu$uV.4,79vS//xe" x="-752" y="-503">
+  <block type="global_declaration" id="08OHCu$uV.4,79vS//xe" x="0" y="0">
     <field name="NAME">ingredient_name</field>
     <value name="VALUE">
       <block type="text" id="MUOZz#h}rw~]]xERAV:L">
@@ -23,7 +23,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="WI,can8Pq:Kt(9C]n?%D" x="-746" y="-470">
+  <block type="global_declaration" id="WI,can8Pq:Kt(9C]n?%D" x="0" y="0">
     <field name="NAME">ingredient_score</field>
     <value name="VALUE">
       <block type="math_number" id="bhHZG56gg+lB]iyZkq{f">
@@ -31,7 +31,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="1U-?(lK;Qs3A3R:5{3P-" x="-744" y="-439">
+  <block type="global_declaration" id="1U-?(lK;Qs3A3R:5{3P-" x="0" y="0">
     <field name="NAME">cancer_score</field>
     <value name="VALUE">
       <block type="math_number" id="N}1w+R~GAAC/@nxZiJnp">
@@ -39,7 +39,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="OBP!{;-eF=N;U4/G;;7y" x="-744" y="-405">
+  <block type="global_declaration" id="OBP!{;-eF=N;U4/G;;7y" x="0" y="0">
     <field name="NAME">allergy_imm_tox_score</field>
     <value name="VALUE">
       <block type="math_number" id="B1QLV35EDM=09{2wd}U1">
@@ -47,7 +47,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="gFyw!cIOg7c(UT(@Quoj" x="-740" y="-373">
+  <block type="global_declaration" id="gFyw!cIOg7c(UT(@Quoj" x="0" y="0">
     <field name="NAME">dev_reprod_tox_score</field>
     <value name="VALUE">
       <block type="math_number" id="h*1`WTh_cg~+4eAf1!:T">
@@ -55,7 +55,7 @@
       </block>
     </value>
   </block>
-  <block type="component_event" id="W-x]^j:HvZ6{xu7b/wn`" x="-737" y="-311">
+  <block type="component_event" id="W-x]^j:HvZ6{xu7b/wn`" x="0" y="0">
     <mutation component_type="Button" instance_name="start_speaking" event_name="Click"></mutation>
     <field name="COMPONENT_SELECTOR">start_speaking</field>
     <statement name="DO">
@@ -65,7 +65,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="lKyQUEMw{9npxqBk^T)," x="-734" y="-232">
+  <block type="component_event" id="lKyQUEMw{9npxqBk^T)," x="0" y="0">
     <mutation component_type="SpeechRecognizer" instance_name="SpeechRecognizer1" event_name="AfterGettingText"></mutation>
     <field name="COMPONENT_SELECTOR">SpeechRecognizer1</field>
     <statement name="DO">
@@ -97,7 +97,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="5dz0fv23a~w:vE3=@Omr" x="-731" y="-100">
+  <block type="component_event" id="5dz0fv23a~w:vE3=@Omr" x="0" y="0">
     <mutation component_type="Button" instance_name="scoresearch" event_name="Click"></mutation>
     <field name="COMPONENT_SELECTOR">scoresearch</field>
     <statement name="DO">
@@ -147,7 +147,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="3$B|p@hSqM?;T?v_m8ja" x="-732" y="107">
+  <block type="component_event" id="3$B|p@hSqM?;T?v_m8ja" x="0" y="0">
     <mutation component_type="Web" instance_name="Web1" event_name="GotText"></mutation>
     <field name="COMPONENT_SELECTOR">Web1</field>
     <statement name="DO">

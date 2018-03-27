@@ -1,5 +1,5 @@
 <xml xmlns="http://www.w3.org/1999/xhtml">
-  <block type="global_declaration" id="@d$;8o5hx$EC=AuauV(j" x="-683" y="-528">
+  <block type="global_declaration" id="@d$;8o5hx$EC=AuauV(j" x="0" y="0">
     <field name="NAME">scanning_result</field>
     <value name="VALUE">
       <block type="text" id="j$u:bC,diJHY//?M-,ZK">
@@ -7,7 +7,7 @@
       </block>
     </value>
   </block>
-  <block type="global_declaration" id="aE;4`5HEh)@LnDM};C/," x="-680" y="-481">
+  <block type="global_declaration" id="aE;4`5HEh)@LnDM};C/," x="0" y="0">
     <field name="NAME">serverAddress</field>
     <value name="VALUE">
       <block type="text" id="`7((:D,%}}$C!o-y)si[">
@@ -15,7 +15,7 @@
       </block>
     </value>
   </block>
-  <block type="component_event" id=":G3NM%$+0!:#-J(y**xC" x="-679" y="-423">
+  <block type="component_event" id=":G3NM%$+0!:#-J(y**xC" x="0" y="0">
     <mutation component_type="Form" instance_name="barcode" event_name="Initialize"></mutation>
     <field name="COMPONENT_SELECTOR">barcode</field>
     <statement name="DO">
@@ -52,7 +52,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="%@|.V5kHc(x+0Fn-|[U5" x="-680" y="-246">
+  <block type="component_event" id="%@|.V5kHc(x+0Fn-|[U5" x="0" y="0">
     <mutation component_type="Button" instance_name="Scan_Barcode" event_name="Click"></mutation>
     <field name="COMPONENT_SELECTOR">Scan_Barcode</field>
     <statement name="DO">
@@ -62,7 +62,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="*qx=8}8G2:apn1rky9z+" x="-678" y="-167">
+  <block type="component_event" id="*qx=8}8G2:apn1rky9z+" x="0" y="0">
     <mutation component_type="BarcodeScanner" instance_name="BarcodeScanner1" event_name="AfterScan"></mutation>
     <field name="COMPONENT_SELECTOR">BarcodeScanner1</field>
     <statement name="DO">
@@ -103,7 +103,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="5dz0fv23a~w:vE3=@Omr" x="-681" y="-16">
+  <block type="component_event" id="5dz0fv23a~w:vE3=@Omr" x="0" y="0">
     <mutation component_type="Button" instance_name="GotoUrl" event_name="Click"></mutation>
     <field name="COMPONENT_SELECTOR">GotoUrl</field>
     <statement name="DO">
@@ -163,7 +163,7 @@
       </block>
     </statement>
   </block>
-  <block type="component_set_get" id="/e9e.[q:c)2.V4ZO:f5G" disabled="true" x="-683" y="280">
+  <block type="component_set_get" id="/e9e.[q:c)2.V4ZO:f5G" disabled="true" x="0" y="0">
     <mutation component_type="Web" set_or_get="set" property_name="RequestHeaders" is_generic="false" instance_name="Web1"></mutation>
     <field name="COMPONENT_SELECTOR">Web1</field>
     <field name="PROP">RequestHeaders</field>
@@ -188,7 +188,7 @@
       </block>
     </value>
   </block>
-  <block type="component_event" id="3$B|p@hSqM?;T?v_m8ja" x="-683" y="428">
+  <block type="component_event" id="3$B|p@hSqM?;T?v_m8ja" x="0" y="0">
     <mutation component_type="Web" instance_name="Web1" event_name="GotText"></mutation>
     <field name="COMPONENT_SELECTOR">Web1</field>
     <statement name="DO">
