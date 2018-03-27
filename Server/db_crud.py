@@ -14,7 +14,6 @@ class DB_CRUD(object):
         self.client = MongoClient(host=host, port=port)
         self.database = self.client[db]
         self.collection = col
-
     def create(self, db_object):
         '''
             Creates a new object within the database
@@ -93,7 +92,7 @@ class DB_CRUD(object):
             returns:
                 WriteResult - object describing the result of this operations
         '''
-        return self.database[self.collection].delete_many({})
+        return self.database[self.collection].drop()
 
     def createIndex(self, fields, **kwargs):
         '''

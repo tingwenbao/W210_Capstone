@@ -13,7 +13,7 @@ from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
 import json
 import numpy as np
-from pymongo import TEXT
+from pymongo import TEXT, ASCENDING
 import base64
 from faker import Faker
 # Fake info generator
@@ -26,7 +26,7 @@ INGREDIENT_FILE = 'ewg_ingredients.json'
 PRODUCT_FILE = 'ewg_products.json'
 CMDGNC_FILE = 'comodegenic.json'
 
-UNIQUE_NAMES = {}
+NAMES_SEEN = set()
 
 
 def query_yes_no(question, default="yes"):
@@ -323,19 +323,25 @@ def get_unique_username(full_name):
     to letter if that fails.
     '''
     name_list = full_name.split(' ')
-    uname = name_list[0][0] + name_list[1]
+    try:
+        uname = name_list[0][0] + name_list[1]
+    except IndexError:
+        uname = name_list[0][0] + str(np.random.choice(1000000))
 
     apnd = ''
     for i in range(1000):
-        if UNIQUE_NAMES.get(uname, False) is not False:
+        if uname not in NAMES_SEEN:
+            # Name is unique, we're done
+            NAMES_SEEN.add(uname)
+            return uname.lower()
+        else:
+            # Name is not unique, randomize it a bit
             uname = uname.strip(apnd)
             apnd = str(np.random.choice(1000000))
             uname = uname + apnd
-        else:
-            UNIQUE_NAMES[uname] = None
-            return uname.lower()
     apnd = fake.password(length=5, special_chars=False, upper_case=False)
     uname = uname + apnd
+    NAMES_SEEN.add(uname)
     return uname.lower()
 
 
@@ -389,8 +395,14 @@ def generate_people(host, port, num_generate_people=10000):
     people_db = DB_CRUD(host, port, db='capstone', col='people')
     products_db = DB_CRUD(host, port, db='capstone', col='products')
 
-    # Erase people DB
+    print("Nuking people database")
     people_db.nuke()
+
+    print("Creating search indexes")
+    people_db.createIndex(
+        [('user_name', ASCENDING)],
+        unique=True,
+        default_language='english')
 
     # Generate random people data
     print("Generating race data")
@@ -416,7 +428,7 @@ def generate_people(host, port, num_generate_people=10000):
 
     # Get comodegenic products
     print("Getting list of comodegenic products")
-    db_objects = products_db.read(comodegenic={"$gt": 0})
+    db_objects = products_db.read({'comodegenic': {"$gt": 0}})
     products = [DB_Object.build_from_json(p) for p in db_objects]
 
     print("Adding people to database")
@@ -436,6 +448,8 @@ def generate_people(host, port, num_generate_people=10000):
         # Add person to data base
         new_person = DB_Object.build_from_json(person)
         people_db.create(new_person)
+
+    print("[SUCCESS] people database is populated")
 
 
 def destroy_everything(host, port):
