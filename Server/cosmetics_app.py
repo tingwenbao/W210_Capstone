@@ -246,8 +246,12 @@ class MyHandler(BaseHTTPRequestHandler):
                 with open(s.store_path, 'w') as fh:
                     fh.write(decoded)
 
+                response = {
+                    'barcode_response': 'TEST',
+                }
+
                 s.do_HEAD()
-                s.wfile.write("test")
+                s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
             if s.path == '/searchterm':
                 length = s.headers['content-length']
