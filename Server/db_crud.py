@@ -27,7 +27,7 @@ class DB_CRUD(object):
                 - Exception if db_object is None
         '''
         if db_object is not None:
-            return self.database[self.collection].insert_one(db_object.get_as_json())
+            return self.database[self.collection].insert_one(db_object.get_as_dict())
         else:
             raise Exception("Nothing to save, because db_object parameter is None")
 
@@ -57,7 +57,7 @@ class DB_CRUD(object):
             # the save() method updates the document if this has an _id property
             # which appears in the collection, otherwise it saves the data
             # as a new document in the collection
-            return self.database[self.collection].save(db_object.get_as_json())
+            return self.database[self.collection].save(db_object.get_as_dict())
         else:
             raise Exception("Nothing to update, because db_object parameter is None")
 
@@ -72,7 +72,7 @@ class DB_CRUD(object):
                 - Exception if db_object is None
         '''
         if db_object is not None:
-            return self.database[self.collection].remove(db_object.get_as_json())
+            return self.database[self.collection].remove(db_object.get_as_dict())
         else:
             raise Exception("Nothing to delete, because db_object parameter is None")
 

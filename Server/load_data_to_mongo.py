@@ -16,6 +16,11 @@ import numpy as np
 from pymongo import TEXT, ASCENDING
 import base64
 from faker import Faker
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+
 # Fake info generator
 fake = Faker()
 
@@ -68,7 +73,7 @@ def load_all_items_from_database(repository):
     at_least_one_item = False
     for p in db_objects:
         at_least_one_item = True
-        tmp_project = DB_Object.build_from_json(p)
+        tmp_project = DB_Object.build_from_dict(p)
         print("ID = {} | Title = {} | Price = {}".format(
             tmp_project._id,
             tmp_project.title,
@@ -82,10 +87,10 @@ def test_create(repository, new_object):
     repository.create(new_object)
     print("new_object saved to database")
     print("Loading new_object from database")
-    db_objects = repository.read(_id=new_object._id)
+    db_objects = repository.read({'_id': new_object._id})
     for p in db_objects:
-        project_from_db = DB_Object.build_from_json(p)
-        print("new_object = {}".format(project_from_db.get_as_json()))
+        project_from_db = DB_Object.build_from_dict(p)
+        print("new_object = {}".format(project_from_db.get_as_dict()))
 
 
 def test_update(repository, new_object):
@@ -93,10 +98,10 @@ def test_update(repository, new_object):
     repository.update(new_object)
     print("new_object updated in database")
     print("Reloading new_object from database")
-    db_objects = repository.read(_id=new_object._id)
+    db_objects = repository.read({'_id': new_object._id})
     for p in db_objects:
-        project_from_db = DB_Object.build_from_json(p)
-        print("new_object = {}".format(project_from_db.get_as_json()))
+        project_from_db = DB_Object.build_from_dict(p)
+        print("new_object = {}".format(project_from_db.get_as_dict()))
 
 
 def test_delete(repository, new_object):
@@ -104,12 +109,12 @@ def test_delete(repository, new_object):
     repository.delete(new_object)
     print("new_object deleted from database")
     print("Trying to reload new_object from database")
-    db_objects = repository.read(_id=new_object._id)
+    db_objects = repository.read({'_id': new_object._id})
     found = False
     for p in db_objects:
         found = True
-        project_from_db = DB_Object.build_from_json(p)
-        print("new_object = {}".format(project_from_db.get_as_json()))
+        project_from_db = DB_Object.build_from_dict(p)
+        print("new_object = {}".format(project_from_db.get_as_dict()))
 
     if not found:
         print("Item with id = {} was not found in the database".format(new_object._id))
@@ -124,15 +129,10 @@ def test_delete_all(repository):
     at_least_one_item = False
     for p in db_objects:
         at_least_one_item = True
-        tmp_project = DB_Object.build_from_json(p)
-        print("ID = {} | Title = {} | Price = {}".format(
-            tmp_project._id,
-            tmp_project.title,
-            tmp_project.price))
-    if not at_least_one_item:
-        print("[SUCCESS] No items in the database")
+    if at_least_one_item:
+        print("[FAILED] Items still in " + repository.collection + " database")
     else:
-        print("[FAILED] test_delete_all")
+        print("[SUCCESS] No items in " + repository.collection + " database")
 
 
 def test_db(host, port):
@@ -150,7 +150,7 @@ def test_db(host, port):
         "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc molestie. ",
         "price": 250,
         "assigned_to": "John Doe"}
-    new_object = DB_Object.build_from_json(json_data)
+    new_object = DB_Object.build_from_dict(json_data)
     test_create(test_db, new_object)
 
     #update new_object and read back from database
@@ -162,7 +162,7 @@ def test_db(host, port):
 
     #Test nuking and reading anything back from database
     for i in range(3):
-        test_db.create(DB_Object.build_from_json(json_data))
+        test_db.create(DB_Object.build_from_dict(json_data))
     test_delete_all(test_db)
 
 
@@ -213,7 +213,7 @@ def build_db(host, port, **kwargs):
         #cmdgnc_dict = {entry['ingredient']: entry for entry in cmdgnc_list}
         for entry in cmdgnc_list:
             # Create DB object from product
-            new_entry = DB_Object.build_from_json(entry)
+            new_entry = DB_Object.build_from_dict(entry)
             # Insert the product into the database
             comodegenic_db.create(new_entry)
         comodegenic_db.createIndex([('ingredient', TEXT)])
@@ -230,7 +230,7 @@ def build_db(host, port, **kwargs):
         search_term = '"' + ingredient.get('ingredient_name', '') + '"'
         db_objects = comodegenic_db.read(
             {'$text': {"$search": search_term}})
-        entries = [DB_Object.build_from_json(entry) for entry in db_objects]
+        entries = [DB_Object.build_from_dict(entry) for entry in db_objects]
 
         # Try to find ingredient in comodegenic DB, fall back to synonyms if necessary
         if entries:
@@ -240,7 +240,7 @@ def build_db(host, port, **kwargs):
                 search_term = '"' + synonym + '"'
                 db_objects = comodegenic_db.read(
                     {'$text': {"$search": search_term}})
-                entries = [DB_Object.build_from_json(entry) for entry in db_objects]
+                entries = [DB_Object.build_from_dict(entry) for entry in db_objects]
                 if entries:
                     ingredient['comodegenic'] = int(entries[0]['level'])
                     break
@@ -249,7 +249,7 @@ def build_db(host, port, **kwargs):
             ingredient['comodegenic'] = None
 
         # Create DB object from ingredient
-        new_ingredient = DB_Object.build_from_json(ingredient)
+        new_ingredient = DB_Object.build_from_dict(ingredient)
         # Add the new mongoDB id to the existing ingredients dictionary
         ingredient['_id'] = new_ingredient['_id']
 
@@ -288,7 +288,7 @@ def build_db(host, port, **kwargs):
         # Remove old style product id
         del(product['product_id'])
         # Create DB object from product
-        new_product = DB_Object.build_from_json(product)
+        new_product = DB_Object.build_from_dict(product)
         # Insert the product into the database
         products_db.create(new_product)
 
@@ -447,7 +447,7 @@ def generate_people(host, port, num_generate_people=10000):
     # Get comodegenic products
     print("Getting list of comodegenic products")
     db_objects = products_db.read({'comodegenic': {"$gt": 0}})
-    products = [DB_Object.build_from_json(p) for p in db_objects]
+    products = [DB_Object.build_from_dict(p) for p in db_objects]
 
     print("Adding people to database")
     # Populate acne causing products for each person
@@ -464,7 +464,7 @@ def generate_people(host, port, num_generate_people=10000):
         else:
             person['acne_products'] = []
         # Add person to data base
-        new_person = DB_Object.build_from_json(person)
+        new_person = DB_Object.build_from_dict(person)
         people_db.create(new_person)
 
     print("[SUCCESS] people database is populated")
@@ -564,7 +564,7 @@ def dump_db_to_json(host, port, dump_db):
             out_list[repo.collection] = []
             for p in db_objects:
                 at_least_one_item = True
-                out_list[repo.collection].append(DB_Object.build_from_json(p))
+                out_list[repo.collection].append(DB_Object.build_from_dict(p))
             if not at_least_one_item:
                 print("No items in ", repo.collection, " database")
     else:
@@ -575,7 +575,7 @@ def dump_db_to_json(host, port, dump_db):
         for p in db_objects:
             at_least_one_item = True
             out_list[repos[repo_idx].collection].append(
-                DB_Object.build_from_json(p).get_as_json())
+                DB_Object.build_from_dict(p).get_as_dict())
         if not at_least_one_item:
             print("No items in ", repos[repo_idx].collection, " database")
 
@@ -628,8 +628,8 @@ def main(**kwargs):
     # Inform user that they didn't select any options and provide help
     if not bool(test + build + generate + stats + nuke_all + bool(dump_db)):
         print(
-            "The program didn't do anythin, no options selected, "
-            "run again with '-h' for help")
+            "The program didn't do anything because no options were selected, "
+            "rerun with '-h' for help")
 
 
 if __name__ == '__main__':
@@ -654,7 +654,7 @@ if __name__ == '__main__':
         default=PRODUCT_FILE)
     parser.add_argument(
         '--como',
-        help='Specify comodegenic file',
+        help='Specify comodegenic JSON file',
         default=CMDGNC_FILE)
     select_one.add_argument('-t', '--test', help='Run DB connection tests', action='store_true')
     select_one.add_argument(
@@ -669,7 +669,7 @@ if __name__ == '__main__':
     select_one.add_argument(
         '-b',
         '--build',
-        help='Populate the database with data from JSON files',
+        help='Build the ingredients, products, and comodegenic databases.',
         action='store_true')
     select_one.add_argument(
         '-d',

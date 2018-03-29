@@ -94,7 +94,7 @@ class MyHandler(BaseHTTPRequestHandler):
         in_auth = auth_str.strip().strip('Basic ')
         query = PEOPLE_DB.read({'auth': in_auth}, limit=1)
         if query.count() == 1:
-            s.person_data = DB_Object.build_from_json(query[0])
+            s.person_data = DB_Object.build_from_dict(query[0])
             return True
         else:
             return False
@@ -112,7 +112,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def create_new_user(s, recv_data):
 
-        return PEOPLE_DB.create(DB_Object.build_from_json(recv_data))
+        return PEOPLE_DB.create(DB_Object.build_from_dict(recv_data))
 
     def get_prod_suggestions(s, search_str):
         """ Check DB to see if username is avaialble"""
