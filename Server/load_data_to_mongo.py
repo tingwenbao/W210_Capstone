@@ -174,6 +174,7 @@ def build_db(host, port, **kwargs):
     i_path = kwargs.get('i_path', '')
     p_path = kwargs.get('p_path', '')
     c_path = kwargs.get('c_path', '')
+    score_max = kwargs.get('score_max', False)
 
     # Make sure user wants to destroy existing DB
     db_qstn = (
@@ -184,8 +185,11 @@ def build_db(host, port, **kwargs):
         return
 
     # Drop databases
+    print("Deleting products database")
     products_db.nuke()
+    print("Deleting ingredients database")
     ingredients_db.nuke()
+    print("Deleting comodegenic database")
     comodegenic_db.nuke()
 
     # Open files and load JSON data, exit if unsuccesful
@@ -217,33 +221,37 @@ def build_db(host, port, **kwargs):
     # Clean and load ingredients into ingredient database
     print("Populating ingredients")
     for ingredient_id in list(ingredients_dict.keys()):
+        ingredient = ingredients_dict[ingredient_id]
         # Remove the old id entry from ingredients_dict
         # This is to avoid storing redundant info in the DB, ingredient entries will still
         # be accessible using the ingredient_id when the product entries are added
-        del(ingredients_dict[ingredient_id]['ingredient_id'])
+        del(ingredient['ingredient_id'])
         # Get comodegenic info
-        search_term = '"' + ingredients_dict[ingredient_id].get('ingredient_name', '') + '"'
+        search_term = '"' + ingredient.get('ingredient_name', '') + '"'
         db_objects = comodegenic_db.read(
             {'$text': {"$search": search_term}})
         entries = [DB_Object.build_from_json(entry) for entry in db_objects]
 
         # Try to find ingredient in comodegenic DB, fall back to synonyms if necessary
         if entries:
-            ingredients_dict[ingredient_id]['comodegenic'] = int(entries[0]['level'])
+            ingredient['comodegenic'] = int(entries[0]['level'])
         else:
-            for synonym in ingredients_dict[ingredient_id].get('synonym_list', []):
+            for synonym in ingredient.get('synonym_list', []):
                 search_term = '"' + synonym + '"'
                 db_objects = comodegenic_db.read(
                     {'$text': {"$search": search_term}})
                 entries = [DB_Object.build_from_json(entry) for entry in db_objects]
                 if entries:
-                    ingredients_dict[ingredient_id]['comodegenic'] = int(entries[0]['level'])
+                    ingredient['comodegenic'] = int(entries[0]['level'])
                     break
+        # Set null value for ingredients without comodegenic score information
+        if not 'comodegenic' in ingredient:
+            ingredient['comodegenic'] = None
 
         # Create DB object from ingredient
-        new_ingredient = DB_Object.build_from_json(ingredients_dict[ingredient_id])
+        new_ingredient = DB_Object.build_from_json(ingredient)
         # Add the new mongoDB id to the existing ingredients dictionary
-        ingredients_dict[ingredient_id]['_id'] = new_ingredient['_id']
+        ingredient['_id'] = new_ingredient['_id']
 
         # Insert the ingredient into the database
         ingredients_db.create(new_ingredient)
@@ -252,25 +260,35 @@ def build_db(host, port, **kwargs):
     for product_id in list(products_dict.keys()):
         # Convert ingredient list IDs to Mongo DB object IDs
         new_ing_ids = []
-        for ingredient_id in products_dict[product_id].get('ingredient_list', []):
+        product = products_dict[product_id]
+        for ingredient_id in product.get('ingredient_list', []):
             new_ing_id = ingredients_dict.get(ingredient_id, {}).get('_id', None)
             if new_ing_id:
                 new_ing_ids.append(new_ing_id)
-                # Set product comodegenic score based on max ingredient comodegenic score
+                # Set product comodegenic score
+                # Determine whether comodegenic scores are calculated using
+                # ingredient max comodegenic score or sum of ingredient comodegenic scores
                 ing_como = ingredients_dict[ingredient_id].get('comodegenic', 0)
-                prod_como = products_dict[product_id].get('comodegenic', 0)
-                products_dict[product_id]['comodegenic'] = max(prod_como, ing_como)
+                prod_como = product.get('comodegenic', 0)
+
+                if score_max:
+                    product['comodegenic'] = max(prod_como, ing_como)
+                else:
+                    product['comodegenic'] = prod_como + ing_como if ing_como else prod_como
 
             else:
                 raise KeyError(
                     "Check scraper, key should exist in ingredients JSON!\nKey: '{}'".format(
                         ingredient_id))
         if new_ing_ids:
-            products_dict[product_id]['ingredient_list'] = new_ing_ids
+            product['ingredient_list'] = new_ing_ids
+        # Set null value for products without comodegenic score information
+        if not 'comodegenic' in product:
+            product['comodegenic'] = None
         # Remove old style product id
-        del(products_dict[product_id]['product_id'])
+        del(product['product_id'])
         # Create DB object from product
-        new_product = DB_Object.build_from_json(products_dict[product_id])
+        new_product = DB_Object.build_from_json(product)
         # Insert the product into the database
         products_db.create(new_product)
 
@@ -571,6 +589,7 @@ def main(**kwargs):
     test = kwargs.get('test', False)
     generate = kwargs.get('generate', False)
     build = kwargs.get('build', False)
+    score_max = kwargs.get('score_max', False)
     i_path = kwargs.get('ingredients', None)
     p_path = kwargs.get('products', None)
     c_path = kwargs.get('como', None)
@@ -582,7 +601,13 @@ def main(**kwargs):
         test_db(host, port)
 
     if build:
-        build_db(host, port, i_path=i_path, p_path=p_path, c_path=c_path)
+        build_db(
+            host,
+            port,
+            i_path=i_path,
+            p_path=p_path,
+            c_path=c_path,
+            score_max=score_max)
 
     if generate:
         generate_people(host, port)
@@ -600,13 +625,25 @@ def main(**kwargs):
     if dump_db:
         dump_db_to_json(host, port, dump_db)
 
+    # Inform user that they didn't select any options and provide help
+    if not bool(test + build + generate + stats + nuke_all + bool(dump_db)):
+        print(
+            "The program didn't do anythin, no options selected, "
+            "run again with '-h' for help")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    select_one = parser.add_argument_group(
+        'Required arguments (select at least one of the following)')
     parser.add_argument('-o', '--host', help='Server hostname', default=HOST_NAME)
     parser.add_argument('-p', '--port', help='Server port', default=PORT_NUMBER)
-    parser.add_argument('-n', '--nuke', help='Erase all database data', action='store_true')
-    parser.add_argument('-s', '--stats', help='Display info about stored data', action='store_true')
+    select_one.add_argument('-n', '--nuke', help='Erase all database data', action='store_true')
+    select_one.add_argument(
+        '-s',
+        '--stats',
+        help='Display info about stored data',
+        action='store_true')
     parser.add_argument(
         '--ingredients',
         help='Specify ingredients JSON file',
@@ -619,18 +656,22 @@ if __name__ == '__main__':
         '--como',
         help='Specify comodegenic file',
         default=CMDGNC_FILE)
-    parser.add_argument('-t', '--test', help='Run DB connection tests', action='store_true')
-    parser.add_argument(
+    select_one.add_argument('-t', '--test', help='Run DB connection tests', action='store_true')
+    select_one.add_argument(
+        '--score_max',
+        help='Use max ingredient comodegenic score instead of summing all ingredient scores',
+        action='store_true')
+    select_one.add_argument(
         '-g',
         '--generate',
         help='Fill the people DB with automatically generated data',
         action='store_true')
-    parser.add_argument(
+    select_one.add_argument(
         '-b',
         '--build',
         help='Populate the database with data from JSON files',
         action='store_true')
-    parser.add_argument(
+    select_one.add_argument(
         '-d',
         '--dump',
         help=(
