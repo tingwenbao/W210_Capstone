@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
 import json
+from pprint import pformat
 
 
 class DB_Object(object):
@@ -30,6 +31,12 @@ class DB_Object(object):
 
     def __getitem__(self, k):
         return self.__getattribute__(k)
+
+    def __str__(self):
+        return pformat(self.__dict__)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class JSONEncoder(json.JSONEncoder):

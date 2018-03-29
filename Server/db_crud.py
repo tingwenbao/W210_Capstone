@@ -14,6 +14,7 @@ class DB_CRUD(object):
         self.client = MongoClient(host=host, port=port)
         self.database = self.client[db]
         self.collection = col
+
     def create(self, db_object):
         '''
             Creates a new object within the database
@@ -40,18 +41,7 @@ class DB_CRUD(object):
             Additional info:
             http://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.find
         '''
-
-        _id = filter_dict.get('_id', None)
-        if '_id' in filter_dict.keys():
-            del(filter_dict['_id'])
-        for (k, v) in filter_dict.items():
-            if k == '_id':
-                continue
-            filter_dict[k] = v
-        if _id is None and not filter_dict:
-            return self.database[self.collection].find({})
-        else:
-            return self.database[self.collection].find(filter_dict, **kwargs)
+        return self.database[self.collection].find(filter_dict, **kwargs)
 
     def update(self, db_object):
         '''
