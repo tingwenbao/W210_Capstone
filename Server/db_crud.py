@@ -114,4 +114,4 @@ class DB_CRUD(object):
             Uses gridfs to retrieve a file from the database.
         '''
         fs = gridfs.GridFS(self.database)
-        return fs.find_one({"filename": filename}, **kwargs)
+        return fs.find({"filename": filename}, **kwargs)

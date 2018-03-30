@@ -16,12 +16,47 @@ import numpy as np
 from bson.binary import Binary
 from pymongo import TEXT, ASCENDING
 import base64
-from pickle import dumps as pdump
+from pickle import dumps as pdumps
+from pickle import dump as pdump
+from pickle import load as pload
 from faker import Faker
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
+import matplotlib
+matplotlib.use("agg")
+import matplotlib.pyplot as plt
+from datetime import datetime
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.decomposition import PCA
+from sklearn.metrics import (
+    r2_score,
+    accuracy_score,
+    make_scorer)
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVR
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import (
+    HuberRegressor,
+    PassiveAggressiveRegressor,
+    TheilSenRegressor,
+    RANSACRegressor)
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    AdaBoostRegressor,
+    BaggingRegressor,
+    ExtraTreesRegressor,
+    IsolationForest)
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.pipeline import Pipeline
+from matplotlib.ticker import FuncFormatter, MaxNLocator
+from matplotlib.pyplot import cm
+from ml_test_params import *
 
 # Fake info generator
 fake = Faker()
@@ -595,10 +630,11 @@ def build_model(host, port, **kwargs):
     model_db = DB_CRUD(host, port, db='capstone', col='model')
 
     print("Loading products from database:")
+    prod_filt = {'comodegenic': {'$type': 'int'}}  # Only return entries with comodegenic score
     prod_prjctn = {
         'ingredient_list': True,
         'comodegenic': True}
-    db_objects = products_db.read({}, projection=prod_prjctn)
+    db_objects = products_db.read(prod_filt, projection=prod_prjctn)
     products = [DB_Object.build_from_dict(p) for p in db_objects]
 
     # The vectorizer will ignore the following words
@@ -644,8 +680,91 @@ def build_model(host, port, **kwargs):
     }
 
     # Insert the model into the model database
-    model_db.create_file(pdump(model, protocol=2), filename="ml_data")
+    model_db.create_file(pdumps(model, protocol=2), filename="ml_data")
     print('[SUCCESS] Model data post-processed and stored')
+
+
+def test_estimators(est_dicts, model):
+
+    # Runs grid search on each estimator and records the best score
+    # and standard deviation
+
+    X = model['X']
+    y = model['y']
+
+    best_est_res = {}  # Stores estimator performance data
+    for est_dict in est_dicts:
+        print("Running grid search on {} estimator".format(est_dict['name']))
+        grid = GridSearchCV(
+            est_dict['callable'],
+            est_dict['params'],
+            n_jobs=-1,
+            scoring='accuracy',
+            verbose=True)
+        grid.fit(X, y)
+        score, std_dev, est_call = (
+            grid.best_score_,
+            np.mean(grid.cv_results_['std_test_score']),
+            grid.best_estimator_)
+        best_est_res[est_dict['name']] = [score, std_dev, est_call]
+    return best_est_res
+
+
+def plot_best_estimator(estimator_results, custom_axis=None):
+    # Plot the best score of each estimator
+    fig = plt.figure(figsize=(20, 16))
+    ax = fig.add_subplot(111)
+    xs = range(len(estimator_results))
+    color = iter(cm.rainbow(np.linspace(0, 1, len(xs))))
+    labels = list(estimator_results.keys())
+
+    ax.set_xticks(np.arange(len(xs)))
+    ax.set_xticklabels(labels)
+
+    for i, (clf, result) in enumerate(estimator_results.items()):
+        c = next(color)
+        ax.errorbar(
+            i,
+            -1.0 * result[0],
+            yerr=result[1],
+            fmt='--o',
+            color=c,
+            capsize=5,
+            label=labels[i]
+            )
+        ax.annotate(
+            "{:.2f}\n(+/-{:.2E})".format(-1.0 * result[0], result[1]),
+            (i+0.05, -1.0 * result[0]))
+
+    plt.title("Estimator score with Average Test Standard Deviation")
+    plt.legend()
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(50)
+    if custom_axis is not None:
+        plt.axis(custom_axis)
+    plt.savefig("mm_test_result.png")
+
+
+def optimize_model(host, port):
+    model_db = DB_CRUD(host, port, db='capstone', col='model')
+    model_data = 'model_data.pickle'
+    print("Loading model data")
+    try:
+        with open(model_data, "rb") as pickle_in:
+            model = pload(pickle_in)
+        print('Loaded from Pickle')
+    except Exception as e:
+        print("Loading from database...", e)
+        x = model_db.read_file('ml_data').sort("uploadDate", -1).limit(1)
+        model = pload(x[0])
+        print("Saving model data to disk for next time")
+        with open(model_data, "wb") as pickle_out:
+            pdump(model, pickle_out)
+
+    print("Running gridsearchCV")
+
+    estimator_results = test_estimators(est_dicts, model)
+    plot_best_estimator(estimator_results)
 
 
 def main(**kwargs):
@@ -655,6 +774,7 @@ def main(**kwargs):
     generate = kwargs.get('generate', False)
     build = kwargs.get('build', False)
     bld_model = kwargs.get('build_model', False)
+    model_opt = kwargs.get('model_opt', False)
     score_max = kwargs.get('score_max', False)
     i_path = kwargs.get('ingredients', None)
     p_path = kwargs.get('products', None)
@@ -677,6 +797,9 @@ def main(**kwargs):
 
     if bld_model:
         build_model(host, port)
+
+    if model_opt:
+        optimize_model(host, port)
 
     if generate:
         generate_people(host, port)
@@ -702,6 +825,7 @@ def main(**kwargs):
         + generate
         + stats
         + nuke_all
+        + model_opt
         + bool(dump_db))
     if not bool(boolsum):
         print(
@@ -752,6 +876,10 @@ if __name__ == '__main__':
         '-c',
         '--build_model',
         help='Build and store the ML model.',
+        action='store_true')
+    select_one.add_argument(
+        '--model_opt',
+        help='ML model optimization.',
         action='store_true')
     select_one.add_argument(
         '-d',
