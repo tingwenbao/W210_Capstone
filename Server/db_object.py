@@ -8,16 +8,16 @@ class DB_Object(object):
 
     def __init__(self, **kwargs):
         if kwargs:
-            self._id = kwargs.get('_id', ObjectId())
             for (k, v) in kwargs.items():
-                if k == '_id':
-                    continue
                 super().__setattr__(k, v)
 
     def get_as_dict(self):
         """ Method returns a dict representing  the DB_Object object,
          this can be written to a JSON file or saved to MongoDB """
         return self.__dict__.copy()
+
+    def get(self, key, def_val):
+        return self.__dict__.get(key, def_val)
 
     @staticmethod
     def build_from_dict(json_data):
@@ -33,6 +33,12 @@ class DB_Object(object):
 
     def __getitem__(self, k):
         return self.__getattribute__(k)
+
+    def __setitem__(self, k, v):
+        if k == '_id':
+            super().__setattr__(k, v)
+        else:
+            raise KeyError("DB_Object only accepts setting of '_id' attribute")
 
     def __str__(self):
         return pformat(self.__dict__)

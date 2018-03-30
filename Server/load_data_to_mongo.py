@@ -84,7 +84,11 @@ def load_all_items_from_database(repository):
 
 def test_create(repository, new_object):
     print("\n\nSaving new_object to database")
-    repository.create(new_object)
+    result = repository.create(new_object)
+    if result.acknowledged:
+        new_object['_id'] = result.inserted_id
+    else:
+        print("[FAILED] Could not save object")
     print("new_object saved to database")
     print("Loading new_object from database")
     db_objects = repository.read({'_id': new_object._id})
