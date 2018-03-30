@@ -13,8 +13,10 @@ from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
 import json
 import numpy as np
+from bson.binary import Binary
 from pymongo import TEXT, ASCENDING
 import base64
+from pickle import dumps as pdump
 from faker import Faker
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import confusion_matrix
@@ -587,12 +589,72 @@ def dump_db_to_json(host, port, dump_db):
         json.dump(out_list, f, cls=JSONEncoder)
 
 
+def build_model(host, port, **kwargs):
+    products_db = DB_CRUD(host, port, db='capstone', col='products')
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    model_db = DB_CRUD(host, port, db='capstone', col='model')
+
+    print("Loading products from database:")
+    prod_prjctn = {
+        'ingredient_list': True,
+        'comodegenic': True}
+    db_objects = products_db.read({}, projection=prod_prjctn)
+    products = [DB_Object.build_from_dict(p) for p in db_objects]
+
+    # The vectorizer will ignore the following words
+    stop_words = [
+        '',
+        'WATER',
+        'GLYCERIN',
+        'TITANIUM DIOXIDE',
+        'IRON OXIDES',
+        'BEESWAX',
+        'METHYLPARABEN',
+        'PROPYLPARABEN',
+        'PROPYLENE GLYCOL',
+        'PANTHENOL',
+        'MICA']
+
+    # Tokenizer for product ingredient lists
+    def get_ingredients_as_list(product):
+        '''
+        Queries the ingredients DB for a given product's ingredient list
+        and returns the ingredient list as a list of ingredient strings
+        Note: The DB query is performed once using all ingredient object
+        IDs simultaneously.
+        '''
+        fltr = {'_id': {'$in': product.get('ingredient_list', [])}}
+        ing_prjctn = {'_id': False, 'ingredient_name': True}
+        db_objects = ingredients_db.read(fltr, projection=ing_prjctn)
+        return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
+
+    print('Vectorizing product ingredient lists')
+    vectorizer = TfidfVectorizer(
+        tokenizer=get_ingredients_as_list,
+        lowercase=False,
+        stop_words=stop_words)
+    X = vectorizer.fit_transform(products)
+    y = [p['comodegenic'] for p in products]
+
+    print('Storing vectorized data and training labels')
+    # Flatten CSR sparse matrix to strings
+    model = {
+        'X': X,
+        'y': y
+    }
+
+    # Insert the model into the model database
+    model_db.create_file(pdump(model, protocol=2), filename="ml_data")
+    print('[SUCCESS] Model data post-processed and stored')
+
+
 def main(**kwargs):
     host = kwargs.get('host', None)
     port = kwargs.get('port', None)
     test = kwargs.get('test', False)
     generate = kwargs.get('generate', False)
     build = kwargs.get('build', False)
+    bld_model = kwargs.get('build_model', False)
     score_max = kwargs.get('score_max', False)
     i_path = kwargs.get('ingredients', None)
     p_path = kwargs.get('products', None)
@@ -613,6 +675,9 @@ def main(**kwargs):
             c_path=c_path,
             score_max=score_max)
 
+    if bld_model:
+        build_model(host, port)
+
     if generate:
         generate_people(host, port)
 
@@ -630,7 +695,15 @@ def main(**kwargs):
         dump_db_to_json(host, port, dump_db)
 
     # Inform user that they didn't select any options and provide help
-    if not bool(test + build + generate + stats + nuke_all + bool(dump_db)):
+    boolsum = (
+        test
+        + build
+        + bld_model
+        + generate
+        + stats
+        + nuke_all
+        + bool(dump_db))
+    if not bool(boolsum):
         print(
             "The program didn't do anything because no options were selected, "
             "rerun with '-h' for help")
@@ -674,6 +747,11 @@ if __name__ == '__main__':
         '-b',
         '--build',
         help='Build the ingredients, products, and comodegenic databases.',
+        action='store_true')
+    select_one.add_argument(
+        '-c',
+        '--build_model',
+        help='Build and store the ML model.',
         action='store_true')
     select_one.add_argument(
         '-d',

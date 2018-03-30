@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import gridfs
 from bson.objectid import ObjectId
 from db_object import DB_Object
 
@@ -99,3 +100,18 @@ class DB_CRUD(object):
             return self.database.command("collstats", self.collection)
         else:
             return {'info': "'" + self.collection + "' doesn't exist in database"}
+
+    def create_file(self, data, **kwargs):
+        '''
+            Uses gridfs to store files in the database.
+            Useful for storing objects which are larger than the 16MB document size limit
+        '''
+        fs = gridfs.GridFS(self.database)
+        return fs.put(data, **kwargs)
+
+    def read_file(self, filename, **kwargs):
+        '''
+            Uses gridfs to retrieve a file from the database.
+        '''
+        fs = gridfs.GridFS(self.database)
+        return fs.find_one({"filename": filename}, **kwargs)
