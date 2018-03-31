@@ -725,7 +725,7 @@ def plot_best_estimator(estimator_results, custom_axis=None):
         c = next(color)
         ax.errorbar(
             i,
-            -1.0 * result[0],
+            1.0 * result[0],
             yerr=result[1],
             fmt='--o',
             color=c,
@@ -733,10 +733,10 @@ def plot_best_estimator(estimator_results, custom_axis=None):
             label=labels[i]
             )
         ax.annotate(
-            "{:.2f}\n(+/-{:.2E})".format(-1.0 * result[0], result[1]),
-            (i+0.05, -1.0 * result[0]))
+            "{:.2f}\n(+/-{:.2E})".format(1.0 * result[0], result[1]),
+            (i+0.05, 1.0 * result[0]))
 
-    plt.title("Estimator score with Average Test Standard Deviation")
+    plt.title("Estimator Accuracy with Average Standard Deviation")
     plt.legend()
     for tick in ax.get_xticklabels():
         tick.set_rotation(50)
@@ -748,6 +748,7 @@ def plot_best_estimator(estimator_results, custom_axis=None):
 def optimize_model(host, port):
     model_db = DB_CRUD(host, port, db='capstone', col='model')
     model_data = 'model_data.pickle'
+    result_data = 'estimator_results.pickle'
     print("Loading model data")
     try:
         with open(model_data, "rb") as pickle_in:
@@ -765,6 +766,12 @@ def optimize_model(host, port):
 
     estimator_results = test_estimators(est_dicts, model)
     plot_best_estimator(estimator_results)
+    print(
+        "Saving gridsearchCV results, explore by un-pickling",
+        result_data,
+        "with an IPython shell or python program.")
+    with open(result_data, "wb") as pickle_out:
+        pdump(estimator_results, pickle_out)
 
 
 def main(**kwargs):
