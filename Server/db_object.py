@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
 import json
+from pprint import pformat
 
 
 class DB_Object(object):
@@ -7,19 +8,21 @@ class DB_Object(object):
 
     def __init__(self, **kwargs):
         if kwargs:
-            self._id = kwargs.get('_id', ObjectId())
             for (k, v) in kwargs.items():
-                if k == '_id':
-                    continue
                 super().__setattr__(k, v)
 
-    def get_as_json(self):
-        """ Method returns the JSON representation of the DB_Object object, which can be saved to MongoDB """
-        return self.__dict__
+    def get_as_dict(self):
+        """ Method returns a dict representing  the DB_Object object,
+         this can be written to a JSON file or saved to MongoDB """
+        return self.__dict__.copy()
+
+    def get(self, key, def_val):
+        return self.__dict__.get(key, def_val)
 
     @staticmethod
-    def build_from_json(json_data):
-        """ Method used to build DB_Object objects from JSON data returned from MongoDB """
+    def build_from_dict(json_data):
+        """ Method used to build DB_Object objects from JSON data returned from MongoDB
+        (stored as python dict) """
         if json_data is not None:
             try:
                 return DB_Object(**json_data)
@@ -31,11 +34,26 @@ class DB_Object(object):
     def __getitem__(self, k):
         return self.__getattribute__(k)
 
+    def __setitem__(self, k, v):
+        if k == '_id':
+            super().__setattr__(k, v)
+        else:
+            raise KeyError("DB_Object only accepts setting of '_id' attribute")
+
+    def __str__(self):
+        return pformat(self.__dict__)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
             return str(o)
         elif isinstance(o, DB_Object):
-            return str(o.get_as_json())
+            o = o.get_as_dict()
+            o['_id'] = str(o.get('_id', None))
+            o['acne_products'] = [str(obj_id) for obj_id in o.get('acne_products', [])]
+            return str(o)
         return json.JSONEncoder.default(self, o)
