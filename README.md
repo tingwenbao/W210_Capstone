@@ -7,9 +7,10 @@
 1. Install python on the server. Current scripts use python3.
     1.  I prefer [Anaconda](https://www.anaconda.com/download), it includes numerous libraries and tools to manage and control dev environments.
 1. Follow the linked instructions to install [MongoDB](https://docs.mongodb.com/getting-started/shell/tutorial/install-mongodb-on-ubuntu/)
-1. Run `pip install fuzzywuzzy python-Levenshtein names` from terminal
+1. Run `pip install fuzzywuzzy python-Levenshtein faker Pillow pytesseract` from terminal
     1.  May also need to run `sudo apt-get install gcc`
 1. Run `conda install pymongo` from terminal
+1. Run `sudo apt-get install tesseract-ocr`
 1. Copy `cosmetics_app.py` to your designated folder on the server
 1. Copy `ewg_ingredients.json` to the same folder
 1. Start MongoDB by `sudo service mongod start`

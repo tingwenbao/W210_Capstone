@@ -1,4 +1,6 @@
 
 *.json
-
+*.jpg
 *.pyc
+*.pickle
+
