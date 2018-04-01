@@ -291,11 +291,20 @@ def build_db(host, port, **kwargs):
 
         # Create DB object from ingredient
         new_ingredient = DB_Object.build_from_dict(ingredient)
-        # Add the new mongoDB id to the existing ingredients dictionary
-        ingredient['_id'] = new_ingredient['_id']
 
         # Insert the ingredient into the database
-        ingredients_db.create(new_ingredient)
+        db_op_res = ingredients_db.create(new_ingredient)
+
+        # Add the new mongoDB id to the existing ingredients dictionary
+        # if the insertion was successful
+        if db_op_res.acknowledged:
+            ingredient['_id'] = db_op_res.inserted_id
+        else:
+            err_msg = (
+                "[FAIL] Database insertion for "
+                + str(new_ingredient)
+                + " was unsuccessful")
+            raise Exception(err_msg)
 
     print("Populating products")
     for product_id in list(products_dict.keys()):
