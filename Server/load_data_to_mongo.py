@@ -174,9 +174,9 @@ def build_db(host, port, **kwargs):
     # Open files and load JSON data, exit if unsuccesful
     print("Attempting to open .json files.")
     try:
-        i_f = open(i_path, 'rb')
-        p_f = open(p_path, 'rb')
-        c_f = open(c_path, 'rb')
+        i_f = open(i_path, 'r')
+        p_f = open(p_path, 'r')
+        c_f = open(c_path, 'r')
     except IOError as e:
         print(e)
         exit()
