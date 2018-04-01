@@ -14,7 +14,7 @@ from db_object import DB_Object, JSONEncoder
 import json
 import numpy as np
 from bson.binary import Binary
-from pymongo import TEXT, ASCENDING
+from pymongo import TEXT, ASCENDING, DESCENDING
 import base64
 from pickle import dumps as pdumps
 from pickle import dump as pdump
@@ -361,6 +361,9 @@ def build_db(host, port, **kwargs):
     products_db.createIndex(
         [('product_name', TEXT)],
         default_language='english')
+    products_db.createIndex(
+        [('comodegenic', DESCENDING)],
+        default_language='english')
 
     print("[SUCCESS] Database is populated")
 
@@ -499,6 +502,19 @@ def generate_people(host, port, num_generate_people=10000):
     db_objects = products_db.read({'comodegenic': {"$gt": 0}})
     products = [DB_Object.build_from_dict(p) for p in db_objects]
 
+    # Set scaling for comodogenic-ness of products
+    # The scale value is 1 divided by the maximum comodegenic score
+    # in the products database which works regardless of the scoring
+    # method used when building the db.
+    prod_filt = {'comodegenic': {'$type': 'int'}}
+    prod_prjctn = {'comodegenic': True}
+    db_objects = products_db.read(
+        prod_filt,
+        projection=prod_prjctn,
+        sort=[("comodegenic", DESCENDING)],
+        limit=1)
+    como_scale = 1.0 / DB_Object.build_from_dict(db_objects[0])['comodegenic']
+
     print("Adding people to database")
     # Populate acne causing products for each person
     for person in p_list:
@@ -507,8 +523,9 @@ def generate_people(host, port, num_generate_people=10000):
             for i in range(np.random.choice(5)):  # Randomly choose 0 to 5 products
                 rand_idx = np.abs(np.random.choice(len(products))-1)
                 prod_como = products[rand_idx]['comodegenic']
+                probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
                 # Add product to person based on comodegenic score
-                if np.random.choice([True, False], p=[0.2 * prod_como, 1 - (0.2 * prod_como)]):
+                if np.random.choice([True, False], p=probs):
                     p_products.append(products[rand_idx]['_id'])
             person['acne_products'] = p_products
         else:
