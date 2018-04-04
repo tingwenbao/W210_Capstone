@@ -20,7 +20,9 @@ from pickle import dumps as pdumps
 from pickle import dump as pdump
 from pickle import load as pload
 from faker import Faker
+from scipy.sparse import csr_matrix, hstack, vstack
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction import DictVectorizer
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
@@ -288,6 +290,15 @@ def build_db(host, port, **kwargs):
         # Set null value for ingredients without comodegenic score information
         if not 'comodegenic' in ingredient:
             ingredient['comodegenic'] = None
+
+        # Normalize text fields
+        ingredient['ingredient_name'] = ingredient.get('ingredient_name', '').strip().lower()
+        norm_synonyms = []
+        synonym_list = ingredient.get('synonym_list', [])
+        for synonym in synonym_list:
+            norm_synonyms.append(synonym.strip().lower())
+        if synonym_list:
+            ingredient['synonym_list'] = synonym_list
 
         # Create DB object from ingredient
         new_ingredient = DB_Object.build_from_dict(ingredient)
@@ -650,7 +661,8 @@ def dump_db_to_json(host, port, dump_db):
         json.dump(out_list, f, cls=JSONEncoder)
 
 
-def build_model(host, port, **kwargs):
+def build_product_model(host, port, **kwargs):
+    prod_model_data = 'prod_model_data.pickle'
     products_db = DB_CRUD(host, port, db='capstone', col='products')
     ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
     model_db = DB_CRUD(host, port, db='capstone', col='model')
@@ -705,9 +717,171 @@ def build_model(host, port, **kwargs):
         'y': y
     }
 
+    print("Saving model data to disk for next time")
     # Insert the model into the model database
-    model_db.create_file(pdumps(model, protocol=2), filename="ml_data")
-    print('[SUCCESS] Model data post-processed and stored')
+    model_db.create_file(pdumps(model, protocol=2), filename="ml_product_data")
+    # Save model data to disk
+    with open(prod_model_data, "wb") as pickle_out:
+        pdump(model, pickle_out)
+    print('[SUCCESS] Product model data post-processed and stored')
+
+
+def get_ingredient_vocabulary(host, port, **kwargs):
+    # Returns the set of all unique ingredient names including synonyms
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+
+    # Build list of all ingredient names
+    ing_fltr = {}  # Get all ingredients
+    ing_prjctn = {
+        '_id': False,
+        'ingredient_name': True,
+        'synonym_list': True}
+    db_objects = ingredients_db.read(ing_fltr, projection=ing_prjctn)
+    ingredients = [DB_Object.build_from_dict(i) for i in db_objects]
+    ret = set()
+    for ingredient in ingredients:
+        ret.update([ingredient.get('ingredient_name', '')])
+        for synonym in ingredient.get('synonym_list', []):
+            ret.update([ingredient.get('ingredient_name', '')])
+    return ret
+
+
+def build_people_model(host, port, **kwargs):
+    ppl_model_data = 'ppl_model_data.pickle'
+    products_db = DB_CRUD(host, port, db='capstone', col='products')
+    people_db = DB_CRUD(host, port, db='capstone', col='people')
+    ingredients_db = DB_CRUD(host, port, db='capstone', col='ingredients')
+    model_db = DB_CRUD(host, port, db='capstone', col='model')
+
+    batch_size = kwargs.get('batch_size', 10000)
+    vocabulary = get_ingredient_vocabulary(host, port)
+
+    # The vectorizer will ignore the following words
+    stop_words = [
+        '',
+        'WATER',
+        'GLYCERIN',
+        'TITANIUM DIOXIDE',
+        'IRON OXIDES',
+        'BEESWAX',
+        'METHYLPARABEN',
+        'PROPYLPARABEN',
+        'PROPYLENE GLYCOL',
+        'PANTHENOL',
+        'MICA']
+
+    # Tokenizer for ingredient lists
+    def get_ingredients_as_list(p_list):
+        '''
+        Queries the products and ingredients DBs for ingredients contained within
+        the products given by the input list of Object_Ids.
+        Note: The each DB query is performed once using all object
+        IDs simultaneously. This function performs no more than 2 queries when run.
+        '''
+
+        if not p_list:
+            return []
+
+        # Build list of ingredient ObjectIds contained in the p_list
+        prod_fltr = {'_id': {'$in': p_list}}
+        prod_prjctn = {'_id': False, 'ingredient_list': True}
+        db_objects = products_db.read(prod_fltr, projection=prod_prjctn)
+        # Get ObjectIds of all product ingredients
+        ing_list = set()  # Using set eliminates duplicate values
+        for i in db_objects:
+            ing_list.update(DB_Object.build_from_dict(i).get('ingredient_list', ''))
+
+        # Build list of all ingredient names
+        ing_fltr = {'_id': {'$in': list(ing_list)}}
+        ing_prjctn = {'_id': False, 'ingredient_name': True}
+        db_objects = ingredients_db.read(ing_fltr, projection=ing_prjctn)
+        return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
+
+    print("Loading people from database, batch_size:", str(batch_size))
+    ppl_filt = {}
+    ppl_prjctn = {
+        '_id': False,
+        'race': True,
+        'birth_sex': True,
+        'age': True,
+        'acne': True,
+        'skin': True,
+        'acne_products': True}  # Don't include any PII
+    db_objects = people_db.read(ppl_filt, projection=ppl_prjctn)
+
+    y = []
+    batch_num, pulled = (0, 0)
+    X = None
+
+    # Work in batches to build dataset
+    while pulled <= db_objects.count(with_limit_and_skip=True):
+        # Initialize
+        X_demo_lst, X_prod_lst = ([], [])
+        people = []
+
+        print('Parsing batch:', batch_num)
+
+        try:
+            # Build a batch
+            for i in range(batch_size):
+                people.append(DB_Object.build_from_dict(db_objects.next()))
+                pulled += 1
+        except StopIteration:
+        # End of available data
+            break
+
+        # Extract features
+        for i in range(len(people)):
+            person = people[i]
+            # Pull product ingredients info
+            X_prod_lst.append(person.pop('acne_products'))
+
+            # Pull acne indicator
+            y.append(person.pop('acne'))
+
+            # Pull demographic info
+            X_demo_lst.append(person)
+
+        # Vectorize data
+        d_vect = DictVectorizer(sparse=False)
+        X_demo = d_vect.fit_transform(X_demo_lst)  # X_demo is now a numpy array
+
+        vectorizer = TfidfVectorizer(
+            tokenizer=get_ingredients_as_list,
+            lowercase=False,
+            stop_words=stop_words,
+            vocabulary=vocabulary)
+        X_prod = vectorizer.fit_transform(X_prod_lst)  # X_prod is now a CSR sparse matrix
+
+        # Add batch result to output matrix
+        if X is not None:
+            X_t = hstack([csr_matrix(X_demo), X_prod], format="csr")
+            #print("X", X.shape, "X_t",X_t.shape,'X_demo',X_demo.shape,'X_prod',X_prod.shape)
+            try:
+                X = vstack([X, X_t], format="csr")
+            except:
+                import ipdb
+                ipdb.set_trace()
+        else:
+            # Initialize X
+            X = hstack([csr_matrix(X_demo), X_prod], format="csr")
+
+        batch_num += 1
+
+    print('Storing vectorized data and training labels')
+    # Flatten CSR sparse matrix to strings
+    model = {
+        'X': X,
+        'y': y
+    }
+
+    print("Saving model data to disk for next time")
+    # Insert the model into the model database
+    model_db.create_file(pdumps(model, protocol=2), filename="ml_people_data")
+    # Save model data to disk
+    with open(ppl_model_data, "wb") as pickle_out:
+        pdump(model, pickle_out)
+    print('[SUCCESS] People model data post-processed and stored')
 
 
 def test_estimators(est_dicts, model):
@@ -771,21 +945,50 @@ def plot_best_estimator(estimator_results, custom_axis=None):
     plt.savefig("mm_test_result.png")
 
 
-def optimize_model(host, port):
+def optimize_product_model(host, port):
     model_db = DB_CRUD(host, port, db='capstone', col='model')
-    model_data = 'model_data.pickle'
+    prod_model_data = 'prod_model_data.pickle'
     result_data = 'estimator_results.pickle'
     print("Loading model data")
     try:
-        with open(model_data, "rb") as pickle_in:
+        with open(prod_model_data, "rb") as pickle_in:
             model = pload(pickle_in)
         print('Loaded from Pickle')
     except Exception as e:
         print("Loading from database...", e)
-        x = model_db.read_file('ml_data').sort("uploadDate", -1).limit(1)
+        x = model_db.read_file('ml_product_data').sort("uploadDate", -1).limit(1)
         model = pload(x[0])
         print("Saving model data to disk for next time")
-        with open(model_data, "wb") as pickle_out:
+        with open(prod_model_data, "wb") as pickle_out:
+            pdump(model, pickle_out)
+
+    print("Running gridsearchCV")
+
+    estimator_results = test_estimators(est_dicts, model)
+    plot_best_estimator(estimator_results)
+    print(
+        "Saving gridsearchCV results, explore by un-pickling",
+        result_data,
+        "with an IPython shell or python program.")
+    with open(result_data, "wb") as pickle_out:
+        pdump(estimator_results, pickle_out)
+
+
+def optimize_people_model(host, port):
+    model_db = DB_CRUD(host, port, db='capstone', col='model')
+    ppl_model_data = 'ppl_model_data.pickle'
+    result_data = 'estimator_results.pickle'
+    print("Loading model data")
+    try:
+        with open(ppl_model_data, "rb") as pickle_in:
+            model = pload(pickle_in)
+        print('Loaded from Pickle')
+    except Exception as e:
+        print("Loading from database...", e)
+        x = model_db.read_file('ml_product_data').sort("uploadDate", -1).limit(1)
+        model = pload(x[0])
+        print("Saving model data to disk for next time")
+        with open(ppl_model_data, "wb") as pickle_out:
             pdump(model, pickle_out)
 
     print("Running gridsearchCV")
@@ -806,8 +1009,8 @@ def main(**kwargs):
     test = kwargs.get('test', False)
     generate = kwargs.get('generate', False)
     build = kwargs.get('build', False)
-    bld_model = kwargs.get('build_model', False)
-    model_opt = kwargs.get('model_opt', False)
+    bld_model = kwargs.get('build_model', '')
+    model_opt = kwargs.get('model_opt', '')
     score_max = kwargs.get('score_max', False)
     i_path = kwargs.get('ingredients', None)
     p_path = kwargs.get('products', None)
@@ -828,11 +1031,15 @@ def main(**kwargs):
             c_path=c_path,
             score_max=score_max)
 
-    if bld_model:
-        build_model(host, port)
+    if bld_model == 'prod':
+        build_product_model(host, port)
+    elif bld_model == 'ppl':
+        build_people_model(host, port)
 
-    if model_opt:
-        optimize_model(host, port)
+    if model_opt == 'prod':
+        optimize_product_model(host, port)
+    elif model_opt == 'ppl':
+        optimize_people_model(host, port)
 
     if generate:
         generate_people(host, port)
@@ -854,11 +1061,11 @@ def main(**kwargs):
     boolsum = (
         test
         + build
-        + bld_model
+        + bool(bld_model)
         + generate
         + stats
         + nuke_all
-        + model_opt
+        + bool(model_opt)
         + bool(dump_db))
     if not bool(boolsum):
         print(
@@ -906,20 +1113,21 @@ if __name__ == '__main__':
         help='Build the ingredients, products, and comodegenic databases.',
         action='store_true')
     select_one.add_argument(
-        '-c',
         '--build_model',
-        help='Build and store the ML model.',
-        action='store_true')
+        help=(
+            'Build and store the ML model. Choose one of '
+            '(ppl | prod)'))
     select_one.add_argument(
         '--model_opt',
-        help='ML model optimization.',
-        action='store_true')
+        help=(
+            'ML model optimization. Choose one of '
+            '(ppl | prod)'))
     select_one.add_argument(
         '-d',
         '--dump',
         help=(
             'Dump specified DB to JSON, one of '
-            '(all|people|testing|products|ingredients|comodegenic)'))
+            '(all | people | testing | products | ingredients | comodegenic)'))
     args = parser.parse_args()
 
     main(**vars(args))
