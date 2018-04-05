@@ -529,18 +529,21 @@ def generate_people(host, port, num_generate_people=10000):
     print("Adding people to database")
     # Populate acne causing products for each person
     for person in p_list:
-        if person['acne']:
-            p_products = []
-            for i in range(np.random.choice(5)):  # Randomly choose 0 to 5 products
-                rand_idx = np.abs(np.random.choice(len(products))-1)
-                prod_como = products[rand_idx]['comodegenic']
-                probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
-                # Add product to person based on comodegenic score
+        p_products = []
+        rand_idx = np.abs(np.random.choice(len(products))-1)
+        prod_como = products[rand_idx]['comodegenic']
+        probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
+        for i in range(np.random.choice(5)):
+            if person['acne']:
+                # If a person has acne probabilisticly add 0 to 5 known comodegenic products
+                # otherwise probabilisticly add 0 to 5 non-comodegenic products
                 if np.random.choice([True, False], p=probs):
                     p_products.append(products[rand_idx]['_id'])
-            person['acne_products'] = p_products
-        else:
-            person['acne_products'] = []
+            else:
+                if np.random.choice([False, True], p=probs):
+                    p_products.append(products[rand_idx]['_id'])
+        person['acne_products'] = p_products
+
         # Add person to data base
         new_person = DB_Object.build_from_dict(person)
         people_db.create(new_person)
@@ -678,16 +681,16 @@ def build_product_model(host, port, **kwargs):
     # The vectorizer will ignore the following words
     stop_words = [
         '',
-        'WATER',
-        'GLYCERIN',
-        'TITANIUM DIOXIDE',
-        'IRON OXIDES',
-        'BEESWAX',
-        'METHYLPARABEN',
-        'PROPYLPARABEN',
-        'PROPYLENE GLYCOL',
-        'PANTHENOL',
-        'MICA']
+        'water',
+        'glycerin',
+        'titanium dioxide',
+        'iron oxides',
+        'beeswax',
+        'methylparaben',
+        'propylparaben',
+        'propylene glycol',
+        'panthenol',
+        'mica']
 
     # Tokenizer for product ingredient lists
     def get_ingredients_as_list(product):
@@ -759,16 +762,16 @@ def build_people_model(host, port, **kwargs):
     # The vectorizer will ignore the following words
     stop_words = [
         '',
-        'WATER',
-        'GLYCERIN',
-        'TITANIUM DIOXIDE',
-        'IRON OXIDES',
-        'BEESWAX',
-        'METHYLPARABEN',
-        'PROPYLPARABEN',
-        'PROPYLENE GLYCOL',
-        'PANTHENOL',
-        'MICA']
+        'water',
+        'glycerin',
+        'titanium dioxide',
+        'iron oxides',
+        'beeswax',
+        'methylparaben',
+        'propylparaben',
+        'propylene glycol',
+        'panthenol',
+        'mica']
 
     # Tokenizer for ingredient lists
     def get_ingredients_as_list(p_list):
