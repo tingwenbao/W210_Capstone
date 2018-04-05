@@ -1031,6 +1031,9 @@ def main(**kwargs):
             c_path=c_path,
             score_max=score_max)
 
+    if generate:
+        generate_people(host, port)
+
     if bld_model == 'prod':
         build_product_model(host, port)
     elif bld_model == 'ppl':
@@ -1040,9 +1043,6 @@ def main(**kwargs):
         optimize_product_model(host, port)
     elif model_opt == 'ppl':
         optimize_people_model(host, port)
-
-    if generate:
-        generate_people(host, port)
 
     if stats:
         display_db_stats(host, port)
