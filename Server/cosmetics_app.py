@@ -16,11 +16,16 @@ from load_data_to_mongo import display_db_stats
 from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
+from load_data_to_mongo import get_ingredient_vocabulary, get_ingredients_as_list
 import numpy as np
 
 from PIL import Image
 import PIL.ImageOps
 from pytesseract import image_to_string, image_to_boxes
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction import DictVectorizer
+from scipy.sparse import csr_matrix, hstack, vstack
 
 SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
 SV_PORT_NUMBER = 9000
@@ -33,6 +38,7 @@ PRODUCTS_DB = None
 INGREDIENTS_DB = None
 COMODEGENIC_DB = None
 CLF = None
+ING_VOCAB = None
 
 def change_contrast(img, level):
     factor = (259 * (level + 255)) / (255 * (259 - level))
@@ -349,6 +355,51 @@ class MyHandler(BaseHTTPRequestHandler):
 
             if s.path == '/predict_product_acne':
                 print('predict_product_acne')
+
+                # Build matrix to predict on
+                form = cgi.FieldStorage(
+                    fp=s.rfile,
+                    headers=s.headers,
+                    environ={'REQUEST_METHOD': 'POST'}
+                )
+                recv_data = {
+                    'user_age': int(form.getvalue("user_age")),
+                    'user_race': form.getvalue("user_race"),
+                    'user_skin': form.getvalue("user_skin"),
+                    'user_birth_sex': form.getvalue("user_birth_sex"),
+                    'user_acne_products': json.loads(form.getvalue("user_acne_products"))}
+                print(recv_data)
+
+                # Product ingredients info
+                X_prod_lst = [recv_data.pop('user_acne_products')]
+
+                # Demographic info
+                X_demo_lst = [recv_data]
+
+                # Vectorize data
+                d_vect = DictVectorizer(sparse=False)
+                X_demo = d_vect.fit_transform(X_demo_lst)  # X_demo is now a numpy array
+
+                vectorizer = TfidfVectorizer(
+                    tokenizer=get_ingredients_as_list,
+                    lowercase=False,
+                    vocabulary=ING_VOCAB)
+                X_prod = vectorizer.fit_transform(X_prod_lst)  # X_prod is now a CSR sparse matrix
+
+                X = hstack([csr_matrix(X_demo), X_prod], format="csr")
+
+                prediction = CLF.predict(X)
+                import ipdb
+                ipdb.set_trace()
+
+                status = s.create_new_user(recv_data)
+                if status.acknowledged:
+                    response = {"create_user": str(status.inserted_id)}
+                else:
+                    response = {"create_user": None}
+
+                s.do_HEAD()
+                s.wfile.write(bytes(json.dumps(response), 'utf-8'))
             pass
         else:
             s.do_AUTHHEAD()
@@ -419,6 +470,7 @@ if __name__ == '__main__':
     except Exception as e:
         print("Model load failed", e)
         exit()
+    ING_VOCAB = get_ingredient_vocabulary(args.db_host, args.db_port)
 
     display_db_stats(args.db_host, args.db_port)
 
