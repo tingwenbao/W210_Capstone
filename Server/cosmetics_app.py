@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 '''
-Cosmetics app server
+Proof of concept cosmetics app server
+NOTE: Not thread safe
 '''
 import time
 import os
@@ -12,12 +13,9 @@ import json
 import pandas as pd
 import argparse
 from load_data_to_mongo import display_db_stats
-#from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
-
+from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
-import json
 import numpy as np
 
 from PIL import Image
@@ -34,6 +32,7 @@ PEOPLE_DB = None
 PRODUCTS_DB = None
 INGREDIENTS_DB = None
 COMODEGENIC_DB = None
+CLF = None
 
 def change_contrast(img, level):
     factor = (259 * (level + 255)) / (255 * (259 - level))
@@ -280,7 +279,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 s.do_HEAD()
                 s.wfile.write(results.encode("utf-8"))
 
-            elif s.path == '/upload':
+            if s.path == '/upload':
                 print("Recognize /upload")
 
                 s.rfile.flush()
@@ -348,6 +347,8 @@ class MyHandler(BaseHTTPRequestHandler):
 
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
+            if s.path == '/predict_product_acne':
+                print('predict_product_acne')
             pass
         else:
             s.do_AUTHHEAD()
@@ -407,9 +408,21 @@ if __name__ == '__main__':
     PRODUCTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='products')
     INGREDIENTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='ingredients')
     COMODEGENIC_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='comodegenic')
+
+    # Load people model
+    result_data = 'estimator_results.pickle'
+    print("Loading model data")
+    try:
+        with open(result_data, "rb") as pickle_in:
+            CLF = pload(pickle_in)['RandomForestClassifier'][2]
+        print('Loaded from Pickle')
+    except Exception as e:
+        print("Model load failed", e)
+        exit()
+
     display_db_stats(args.db_host, args.db_port)
 
-    # Startup App server
+    # Start server
     server_class = HTTPServer
     httpd = server_class((args.server_host, args.server_port), MyHandler)
     print(time.asctime(), "Server Starts - %s:%s" % (args.server_host, args.server_port))
