@@ -281,7 +281,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 s.wfile.write(results.encode("utf-8"))
 
             elif s.path == '/upload':
-                print("recognize /upload")
+                print("Recognize /upload")
 
                 s.rfile.flush()
 
@@ -312,7 +312,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 img = change_contrast(Image.open(s.upload_path),100)
                 img_final = light_background(img)
                 i_result = image_to_string(img_final).split("\n")
-                print(i_result)
+                print("[IMAGE RESULT]:", i_result)
                 # find the ingredient list part from result and extract it as a list of ingredients
                 start_index = 0
                 end_index = 0
@@ -336,8 +336,16 @@ class MyHandler(BaseHTTPRequestHandler):
 
                 r = i_result[start_index:end_index+1]
                 ingredient_list = ' '.join(r[1:]).split(',')
-                print(ingredient_list)
-                s.wfile.write(ingredient_list)
+
+                print("[INGREDIENT LIST]:", ingredient_list)
+                print("[R]:", r)
+
+                response = {
+                    'success': True,
+                    'ingredients': ingredient_list
+                }
+
+                s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
             pass
         else:
