@@ -19,6 +19,12 @@ class DB_Object(object):
     def get(self, key, def_val):
         return self.__dict__.get(key, def_val)
 
+    def pop(self, key):
+        return self.__dict__.pop(key)
+
+    def items(self):
+        return self.__dict__.items()
+
     @staticmethod
     def build_from_dict(json_data):
         """ Method used to build DB_Object objects from JSON data returned from MongoDB
