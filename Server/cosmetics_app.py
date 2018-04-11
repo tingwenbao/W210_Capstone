@@ -310,8 +310,10 @@ class MyHandler(BaseHTTPRequestHandler):
                     fh.write(body)
                 # open photo and convert to pure black and white
                 img = change_contrast(Image.open(s.upload_path),100)
-                img_final = light_background(img)
-                i_result = image_to_string(img_final).split("\n")
+                img.save("img_contrast.jpg")
+                #img_final = light_background(img)
+                #img_final.save("img_lightbackground.jpg")
+                i_result = image_to_string(img).split("\n")
                 print(i_result)
                 # find the ingredient list part from result and extract it as a list of ingredients
                 start_index = 0
