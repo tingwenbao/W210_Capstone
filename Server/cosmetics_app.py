@@ -16,7 +16,9 @@ from load_data_to_mongo import display_db_stats
 from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
-from load_data_to_mongo import get_ingredient_vocabulary, get_ingredients_as_list
+from load_data_to_mongo import get_ingredient_vocabulary
+from load_data_to_mongo import get_ingredients_as_list
+from load_data_to_mongo import initialize_connections
 import numpy as np
 
 from PIL import Image
@@ -131,7 +133,42 @@ class MyHandler(BaseHTTPRequestHandler):
 
         sorted_query = query.sort([('score', {'$meta': 'textScore'})])
 
-        return [{"product_id": str(item['_id']), "product_name": item['product_name']} for item in sorted_query]
+        return [{"product_id": str(item['_id']), "product_name": item['product_name']}
+                for item in sorted_query]
+
+    def get_score(s, search_str, col='ingredient'):
+        """ Check DB to see if username is avaialble"""
+
+        if not search_str:
+            return []
+
+        if col == 'ingredient':
+            collection = INGREDIENTS_DB
+            prjctn = {
+                'ingredient_name': True,
+                'cancer_score': True,
+                'allergy_imm_tox_score': True,
+                'ingredient_score': True,
+                'dev_reprod_tox_score': True,
+                'score': {'$meta': 'textScore'}}
+        else:
+            collection = PRODUCTS_DB
+            prjctn = {
+                'product_name': True,
+                'cancer_score': True,
+                'allergy_imm_tox_score': True,
+                'product_score': True,
+                'dev_reprod_tox_score': True,
+                'score': {'$meta': 'textScore'}}
+
+        query = collection.read(
+            {'$text': {'$search': unquote_plus(search_str)}},
+            limit=100,
+            projection=prjctn)
+
+        sorted_query = query.sort([('score', {'$meta': 'textScore'})])
+
+        return [DB_Object.build_from_dict(item) for item in sorted_query]
 
     def do_HEAD(s):
         s.send_response(200)
@@ -202,6 +239,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 'prod_suggestions': s.get_prod_suggestions(search_str),
             }
 
+            print('[RESPONSE]', response)
             s.do_HEAD()
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
@@ -259,31 +297,30 @@ class MyHandler(BaseHTTPRequestHandler):
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
             if s.path == '/searchterm':
-                length = s.headers['content-length']
-                data = s.rfile.read(int(length))
-                decoded = data.decode()
-                search_str = unquote_plus(str(decoded).replace('search_term=', ''))
+                form = cgi.FieldStorage(
+                    fp=s.rfile,
+                    headers=s.headers,
+                    environ={'REQUEST_METHOD': 'POST'}
+                )
 
-                print('SEARCH_STR: ', search_str)
+                search_str = form.getvalue("search_term")
+                search_typ = form.getvalue("search_type")
+                print('[SEARCH TERM]', search_str)
+                print('[SEARCH TYPE]', search_typ)
 
-                # REPLACE WITH DB CALL
-                # import ingredient score and search and return score of the search term
-                with open('ewg_ingredients.json') as jsondata:
-                    ingredients = json.load(jsondata)
-                    jsondata.close()
+                results = s.get_score(search_str, search_typ)
 
-                ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
-                matched_term = process.extract(
-                    search_str,
-                    ewg_ingredient['ingredient_name'],
-                    limit=1)[0][0]
-                record_filter = ewg_ingredient.ingredient_name == matched_term
-                matched_record = ewg_ingredient[record_filter][s.record_data]
-                results = matched_record.to_json(orient='index')
-                print(results)
+                if results:
+                    response = {
+                        'item_suggestions':  results
+                    }
+                else:
+                    response = {}
+                print('[RESPONSE]', response)
 
                 s.do_HEAD()
-                s.wfile.write(results.encode("utf-8"))
+                s.wfile.write(
+                    bytes(json.dumps(response, cls=JSONEncoder), 'utf-8'))
 
             if s.path == '/upload':
                 print("Recognize /upload")
@@ -455,6 +492,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # App databases
+    initialize_connections(args.db_host, args.db_port)
     PEOPLE_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='people')
     PRODUCTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='products')
     INGREDIENTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='ingredients')

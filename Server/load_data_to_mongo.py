@@ -989,6 +989,23 @@ def optimize_people_model(host, port):
         pdump(estimator_results, pickle_out)
 
 
+def initialize_connections(host, port):
+    # Connect to database
+    global PEOPLE_DB
+    global PRODUCTS_DB
+    global INGREDIENTS_DB
+    global TEST_DB
+    global COMODEGENIC_DB
+    global MODEL_DB
+
+    PEOPLE_DB = DB_CRUD(host, port, db='capstone', col='people')
+    PRODUCTS_DB = DB_CRUD(host, port, db='capstone', col='products')
+    INGREDIENTS_DB = DB_CRUD(host, port, db='capstone', col='ingredients')
+    TEST_DB = DB_CRUD(host, port, db='capstone', col='testing')
+    COMODEGENIC_DB = DB_CRUD(host, port, db='capstone', col='comodegenic')
+    MODEL_DB = DB_CRUD(host, port, db='capstone', col='model')
+
+
 def main(**kwargs):
     # Get arguments
     host = kwargs.get('host', None)

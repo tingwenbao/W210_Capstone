@@ -60,6 +60,12 @@ class JSONEncoder(json.JSONEncoder):
         elif isinstance(o, DB_Object):
             o = o.get_as_dict()
             o['_id'] = str(o.get('_id', None))
-            o['acne_products'] = [str(obj_id) for obj_id in o.get('acne_products', [])]
-            return str(o)
+            if 'acne_products' in o:
+                o['acne_products'] = [str(obj_id) for obj_id in o['acne_products']]
+
+            # Convert floats to strings
+            for (k, v) in o.items():
+                if type(v) is float:
+                    o[k] = str(v)
+            return o
         return json.JSONEncoder.default(self, o)
