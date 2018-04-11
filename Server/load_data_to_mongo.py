@@ -513,7 +513,7 @@ def generate_people(host, port, num_generate_people=10000):
 
     # Get comodegenic products
     print("Getting list of comodegenic products")
-    db_objects = PRODUCTS_DB.read({'comodegenic': {"$gt": 0}})
+    db_objects = PRODUCTS_DB.read({})
     products = [DB_Object.build_from_dict(p) for p in db_objects]
 
     # Set scaling for comodogenic-ness of products
@@ -538,8 +538,9 @@ def generate_people(host, port, num_generate_people=10000):
         probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
         for i in range(np.random.choice(5)):
             if person['acne']:
-                # If a person has acne probabilisticly add 0 to 5 known comodegenic products
-                # otherwise probabilisticly add 0 to 5 non-comodegenic products
+                # If a person has acne, probabilisticly add 0 to 5 known
+                # comodegenic products. Otherwise probabilisticly add
+                # 0 to 5 non-comodegenic products
                 if np.random.choice([True, False], p=probs):
                     p_products.append(products[rand_idx]['_id'])
             else:
