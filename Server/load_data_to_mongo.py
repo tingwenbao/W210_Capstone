@@ -533,10 +533,10 @@ def generate_people(host, port, num_generate_people=10000):
     # Populate acne causing products for each person
     for person in p_list:
         p_products = []
-        rand_idx = np.abs(np.random.choice(len(products))-1)
-        prod_como = products[rand_idx]['comodegenic']
-        probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
         for i in range(np.random.choice(5)):
+            rand_idx = np.abs(np.random.choice(len(products))-1)
+            prod_como = products[rand_idx]['comodegenic']
+            probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
             if person['acne']:
                 # If a person has acne, probabilisticly add 0 to 5 known
                 # comodegenic products. Otherwise probabilisticly add
