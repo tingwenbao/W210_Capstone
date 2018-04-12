@@ -513,7 +513,8 @@ def generate_people(host, port, num_generate_people=10000):
 
     # Get comodegenic products
     print("Getting list of comodegenic products")
-    db_objects = PRODUCTS_DB.read({})
+    # 0 value comodegeinc scores are null data
+    db_objects = PRODUCTS_DB.read({'comodegenic': {"$gt": 0}})
     products = [DB_Object.build_from_dict(p) for p in db_objects]
 
     # Set scaling for comodogenic-ness of products
@@ -533,7 +534,7 @@ def generate_people(host, port, num_generate_people=10000):
     # Populate acne causing products for each person
     for person in p_list:
         p_products = []
-        for i in range(np.random.choice(5)):
+        for i in range(np.random.choice(10)):
             rand_idx = np.abs(np.random.choice(len(products))-1)
             prod_como = products[rand_idx]['comodegenic']
             probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
@@ -547,6 +548,8 @@ def generate_people(host, port, num_generate_people=10000):
                 if np.random.choice([False, True], p=probs):
                     p_products.append(products[rand_idx]['_id'])
         person['acne_products'] = p_products
+        #import ipdb
+        #ipdb.set_trace()
 
         # Add person to data base
         new_person = DB_Object.build_from_dict(person)
