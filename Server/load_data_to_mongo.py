@@ -14,6 +14,7 @@ from db_object import DB_Object, JSONEncoder
 import json
 import numpy as np
 from bson.binary import Binary
+from bson.objectid import ObjectId
 from pymongo import TEXT, ASCENDING, DESCENDING
 import base64
 from pickle import dumps as pdumps
@@ -761,9 +762,13 @@ def get_ingredients_as_list(p_list):
 
     if not p_list:
         return []
+    elif type(p_list) is str or type(p_list) is ObjectId:
+        # Query a single ObjectId
+        prod_fltr = {'_id': p_list}
+    else:
+        # Build list of ingredient ObjectIds contained in the p_list
+        prod_fltr = {'_id': {'$in': p_list}}
 
-    # Build list of ingredient ObjectIds contained in the p_list
-    prod_fltr = {'_id': {'$in': p_list}}
     prod_prjctn = {
         '_id': False,
         'ingredient_list': True,
@@ -891,7 +896,9 @@ def build_people_model(host, port, **kwargs):
     model = {
         'X': X,
         'y': y,
-        'd_vect': d_vect
+        'd_vect': d_vect,
+        'tfidf_vect': tfidf_vect,
+        'vocabulary': vocabulary
     }
 
     print("Saving model data to disk for next time")
