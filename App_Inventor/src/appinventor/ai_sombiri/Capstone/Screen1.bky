@@ -2527,322 +2527,310 @@
     <field name="NAME">storePersonData</field>
     <field name="VAR0">decodedJSON</field>
     <statement name="STACK">
-      <block type="component_set_get" id="7@Je0=YI@3SUb4e1Xm6`">
-        <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="report_score"></mutation>
-        <field name="COMPONENT_SELECTOR">report_score</field>
-        <field name="PROP">Text</field>
-        <value name="VALUE">
-          <block type="lexical_variable_get" id="dZNA~6CT[?SQ7|hj+;fa">
-            <field name="VAR">decodedJSON</field>
+      <block type="local_declaration_statement" id="bj5OAT6b4}GvC3S18j[%">
+        <mutation>
+          <localname name="user_data"></localname>
+        </mutation>
+        <field name="VAR0">user_data</field>
+        <value name="DECL0">
+          <block type="lists_lookup_in_pairs" id="d_::u:RiLyoZC92AZ?f@">
+            <value name="KEY">
+              <block type="text" id="|z_vzFGMVDFh/4C{@[kC">
+                <field name="TEXT">user_data</field>
+              </block>
+            </value>
+            <value name="LIST">
+              <block type="lexical_variable_get" id="STbIsd8tPBH]$I3TB9yz">
+                <field name="VAR">decodedJSON</field>
+              </block>
+            </value>
+            <value name="NOTFOUND">
+              <block type="text" id="(E8N7gqL36tCI}ED%Wyy">
+                <field name="TEXT"></field>
+              </block>
+            </value>
           </block>
         </value>
-        <next>
-          <block type="local_declaration_statement" id="bj5OAT6b4}GvC3S18j[%">
-            <mutation>
-              <localname name="user_data"></localname>
-            </mutation>
-            <field name="VAR0">user_data</field>
-            <value name="DECL0">
-              <block type="lists_lookup_in_pairs" id="d_::u:RiLyoZC92AZ?f@">
+        <statement name="STACK">
+          <block type="component_method" id="%AYFOczLNTEc1Lo7q0*{">
+            <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
+            <field name="COMPONENT_SELECTOR">TinyDB1</field>
+            <value name="ARG0">
+              <block type="text" id="IYF)wM5E(:TNv?p$|vWl">
+                <field name="TEXT">user_id</field>
+              </block>
+            </value>
+            <value name="ARG1">
+              <block type="lists_lookup_in_pairs" id="5[Qf`v7f[hWsJw7hMlJ1">
                 <value name="KEY">
-                  <block type="text" id="|z_vzFGMVDFh/4C{@[kC">
-                    <field name="TEXT">user_data</field>
+                  <block type="text" id="B?u!Pwac7L0`Gy0gBB5P">
+                    <field name="TEXT">_id</field>
                   </block>
                 </value>
                 <value name="LIST">
-                  <block type="lexical_variable_get" id="STbIsd8tPBH]$I3TB9yz">
-                    <field name="VAR">decodedJSON</field>
+                  <block type="lexical_variable_get" id="iqal$gfgGAif2B@p.Qu2">
+                    <field name="VAR">user_data</field>
                   </block>
                 </value>
                 <value name="NOTFOUND">
-                  <block type="text" id="(E8N7gqL36tCI}ED%Wyy">
+                  <block type="text" id="(88:X#J;t5lAw_(*.ZzY">
                     <field name="TEXT"></field>
                   </block>
                 </value>
               </block>
             </value>
-            <statement name="STACK">
-              <block type="component_method" id="%AYFOczLNTEc1Lo7q0*{">
+            <next>
+              <block type="component_method" id="!`1w4F}$A^Wx$luxl-l`">
                 <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                 <field name="COMPONENT_SELECTOR">TinyDB1</field>
                 <value name="ARG0">
-                  <block type="text" id="IYF)wM5E(:TNv?p$|vWl">
-                    <field name="TEXT">user_id</field>
+                  <block type="text" id="^OZ)V1SlaOC4K3EZdQ1D">
+                    <field name="TEXT">user_name</field>
                   </block>
                 </value>
                 <value name="ARG1">
-                  <block type="lists_lookup_in_pairs" id="5[Qf`v7f[hWsJw7hMlJ1">
+                  <block type="lists_lookup_in_pairs" id="@+yVnogvG1@]PSf:{|9U">
                     <value name="KEY">
-                      <block type="text" id="B?u!Pwac7L0`Gy0gBB5P">
-                        <field name="TEXT">_id</field>
+                      <block type="text" id=";`dY{m.lAu17W]DR/noD">
+                        <field name="TEXT">name</field>
                       </block>
                     </value>
                     <value name="LIST">
-                      <block type="lexical_variable_get" id="iqal$gfgGAif2B@p.Qu2">
+                      <block type="lexical_variable_get" id="`ut^C_3@n8$o?g5]!CWA">
                         <field name="VAR">user_data</field>
                       </block>
                     </value>
                     <value name="NOTFOUND">
-                      <block type="text" id="(88:X#J;t5lAw_(*.ZzY">
+                      <block type="text" id=";|Ct#|EV9-,qw.n%f/(~">
                         <field name="TEXT"></field>
                       </block>
                     </value>
                   </block>
                 </value>
                 <next>
-                  <block type="component_method" id="!`1w4F}$A^Wx$luxl-l`">
+                  <block type="component_method" id="%k?f*Pp82LB0g~t^`[(+">
                     <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                     <field name="COMPONENT_SELECTOR">TinyDB1</field>
                     <value name="ARG0">
-                      <block type="text" id="^OZ)V1SlaOC4K3EZdQ1D">
-                        <field name="TEXT">user_name</field>
+                      <block type="text" id="G`jJ`fB^8T8m,?L462Gy">
+                        <field name="TEXT">user_race</field>
                       </block>
                     </value>
                     <value name="ARG1">
-                      <block type="lists_lookup_in_pairs" id="@+yVnogvG1@]PSf:{|9U">
+                      <block type="lists_lookup_in_pairs" id="j7YQf?(k9bgk}!b4Ho0D">
                         <value name="KEY">
-                          <block type="text" id=";`dY{m.lAu17W]DR/noD">
-                            <field name="TEXT">name</field>
+                          <block type="text" id="(;RbZ;o]N1^@F_jlge3i">
+                            <field name="TEXT">race</field>
                           </block>
                         </value>
                         <value name="LIST">
-                          <block type="lexical_variable_get" id="`ut^C_3@n8$o?g5]!CWA">
+                          <block type="lexical_variable_get" id=";EY8%f#uSLkn:T+qyj$a">
                             <field name="VAR">user_data</field>
                           </block>
                         </value>
                         <value name="NOTFOUND">
-                          <block type="text" id=";|Ct#|EV9-,qw.n%f/(~">
+                          <block type="text" id="o_$[|F4GII=BcAsVLh@+">
                             <field name="TEXT"></field>
                           </block>
                         </value>
                       </block>
                     </value>
                     <next>
-                      <block type="component_method" id="%k?f*Pp82LB0g~t^`[(+">
+                      <block type="component_method" id="fmGO-OP4v[d=pV7]hm[]">
                         <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                         <field name="COMPONENT_SELECTOR">TinyDB1</field>
                         <value name="ARG0">
-                          <block type="text" id="G`jJ`fB^8T8m,?L462Gy">
-                            <field name="TEXT">user_race</field>
+                          <block type="text" id="H4IocK!skMUP+97)gfXb">
+                            <field name="TEXT">user_birth_sex</field>
                           </block>
                         </value>
                         <value name="ARG1">
-                          <block type="lists_lookup_in_pairs" id="j7YQf?(k9bgk}!b4Ho0D">
+                          <block type="lists_lookup_in_pairs" id="K^9_buFP:I]R]]MIuOsl">
                             <value name="KEY">
-                              <block type="text" id="(;RbZ;o]N1^@F_jlge3i">
-                                <field name="TEXT">race</field>
+                              <block type="text" id="0_Mggf]5,1;qwN!%Ya~5">
+                                <field name="TEXT">birth_sex</field>
                               </block>
                             </value>
                             <value name="LIST">
-                              <block type="lexical_variable_get" id=";EY8%f#uSLkn:T+qyj$a">
+                              <block type="lexical_variable_get" id="3{.v,fP:0f|4g)Yyk6m#">
                                 <field name="VAR">user_data</field>
                               </block>
                             </value>
                             <value name="NOTFOUND">
-                              <block type="text" id="o_$[|F4GII=BcAsVLh@+">
+                              <block type="text" id="@/}s5DDULuu|L@DLRqd2">
                                 <field name="TEXT"></field>
                               </block>
                             </value>
                           </block>
                         </value>
                         <next>
-                          <block type="component_method" id="fmGO-OP4v[d=pV7]hm[]">
+                          <block type="component_method" id="f=0CWCq9`B7xHnm;h_I~">
                             <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                             <field name="COMPONENT_SELECTOR">TinyDB1</field>
                             <value name="ARG0">
-                              <block type="text" id="H4IocK!skMUP+97)gfXb">
-                                <field name="TEXT">user_birth_sex</field>
+                              <block type="text" id="RSQiVkZ,??]6nE%bC-5x">
+                                <field name="TEXT">user_age</field>
                               </block>
                             </value>
                             <value name="ARG1">
-                              <block type="lists_lookup_in_pairs" id="K^9_buFP:I]R]]MIuOsl">
+                              <block type="lists_lookup_in_pairs" id="PJE-RS?%|x+7x)}9fPya">
                                 <value name="KEY">
-                                  <block type="text" id="0_Mggf]5,1;qwN!%Ya~5">
-                                    <field name="TEXT">birth_sex</field>
+                                  <block type="text" id="%AT*;4K+NC+*DR,3GAJz">
+                                    <field name="TEXT">age</field>
                                   </block>
                                 </value>
                                 <value name="LIST">
-                                  <block type="lexical_variable_get" id="3{.v,fP:0f|4g)Yyk6m#">
+                                  <block type="lexical_variable_get" id="GL:O~oUpP%KU0MS?SVie">
                                     <field name="VAR">user_data</field>
                                   </block>
                                 </value>
                                 <value name="NOTFOUND">
-                                  <block type="text" id="@/}s5DDULuu|L@DLRqd2">
+                                  <block type="text" id="g)/M0RyML3-#b!zI!*MX">
                                     <field name="TEXT"></field>
                                   </block>
                                 </value>
                               </block>
                             </value>
                             <next>
-                              <block type="component_method" id="f=0CWCq9`B7xHnm;h_I~">
+                              <block type="component_method" id="0`*RkFHK!bt3e1t|w5`Q">
                                 <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                                 <field name="COMPONENT_SELECTOR">TinyDB1</field>
                                 <value name="ARG0">
-                                  <block type="text" id="RSQiVkZ,??]6nE%bC-5x">
-                                    <field name="TEXT">user_age</field>
+                                  <block type="text" id="4W@3kXPKhO^Wa*X13r%U">
+                                    <field name="TEXT">user_acne</field>
                                   </block>
                                 </value>
                                 <value name="ARG1">
-                                  <block type="lists_lookup_in_pairs" id="PJE-RS?%|x+7x)}9fPya">
+                                  <block type="lists_lookup_in_pairs" id=".1KTzU#t@X4V?2~a+A*j">
                                     <value name="KEY">
-                                      <block type="text" id="%AT*;4K+NC+*DR,3GAJz">
-                                        <field name="TEXT">age</field>
+                                      <block type="text" id="k%IS|uGddR|T$}x@Q#{m">
+                                        <field name="TEXT">acne</field>
                                       </block>
                                     </value>
                                     <value name="LIST">
-                                      <block type="lexical_variable_get" id="GL:O~oUpP%KU0MS?SVie">
+                                      <block type="lexical_variable_get" id="q~%%cAPGJ{c`|b%cF2QF">
                                         <field name="VAR">user_data</field>
                                       </block>
                                     </value>
                                     <value name="NOTFOUND">
-                                      <block type="text" id="g)/M0RyML3-#b!zI!*MX">
+                                      <block type="text" id="^,9imfmG`+EhT,-vkptV">
                                         <field name="TEXT"></field>
                                       </block>
                                     </value>
                                   </block>
                                 </value>
                                 <next>
-                                  <block type="component_method" id="0`*RkFHK!bt3e1t|w5`Q">
+                                  <block type="component_method" id="Rnbi;mJTnqeb!gce,M8B">
                                     <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                                     <field name="COMPONENT_SELECTOR">TinyDB1</field>
                                     <value name="ARG0">
-                                      <block type="text" id="4W@3kXPKhO^Wa*X13r%U">
-                                        <field name="TEXT">user_acne</field>
+                                      <block type="text" id="8q.KBU`1!gwtn7^czrZ`">
+                                        <field name="TEXT">user_skin</field>
                                       </block>
                                     </value>
                                     <value name="ARG1">
-                                      <block type="lists_lookup_in_pairs" id=".1KTzU#t@X4V?2~a+A*j">
+                                      <block type="lists_lookup_in_pairs" id="/1eUe3=T#wy3*XPu%/+^">
                                         <value name="KEY">
-                                          <block type="text" id="k%IS|uGddR|T$}x@Q#{m">
-                                            <field name="TEXT">acne</field>
+                                          <block type="text" id="Y}U[Qnx;]Wivec;)#~.L">
+                                            <field name="TEXT">skin</field>
                                           </block>
                                         </value>
                                         <value name="LIST">
-                                          <block type="lexical_variable_get" id="q~%%cAPGJ{c`|b%cF2QF">
+                                          <block type="lexical_variable_get" id="}:I#Gc}ex9|%j`($};cP">
                                             <field name="VAR">user_data</field>
                                           </block>
                                         </value>
                                         <value name="NOTFOUND">
-                                          <block type="text" id="^,9imfmG`+EhT,-vkptV">
+                                          <block type="text" id="N;5D.YIMX={1VCa@th%2">
                                             <field name="TEXT"></field>
                                           </block>
                                         </value>
                                       </block>
                                     </value>
                                     <next>
-                                      <block type="component_method" id="Rnbi;mJTnqeb!gce,M8B">
+                                      <block type="component_method" id="dAq8@}qoTbR)zld^(!%K">
                                         <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                                         <field name="COMPONENT_SELECTOR">TinyDB1</field>
                                         <value name="ARG0">
-                                          <block type="text" id="8q.KBU`1!gwtn7^czrZ`">
-                                            <field name="TEXT">user_skin</field>
+                                          <block type="text" id="x!])}F2s:s)b[I6+2K%P">
+                                            <field name="TEXT">user_auth</field>
                                           </block>
                                         </value>
                                         <value name="ARG1">
-                                          <block type="lists_lookup_in_pairs" id="/1eUe3=T#wy3*XPu%/+^">
+                                          <block type="lists_lookup_in_pairs" id=":B=8w~^C.%=rM*Rf75;a">
                                             <value name="KEY">
-                                              <block type="text" id="Y}U[Qnx;]Wivec;)#~.L">
-                                                <field name="TEXT">skin</field>
+                                              <block type="text" id="h]?y#k}2Bp2rXPUg#c!@">
+                                                <field name="TEXT">auth</field>
                                               </block>
                                             </value>
                                             <value name="LIST">
-                                              <block type="lexical_variable_get" id="}:I#Gc}ex9|%j`($};cP">
+                                              <block type="lexical_variable_get" id="^;ePY[D%@HzTFrDfD7ch">
                                                 <field name="VAR">user_data</field>
                                               </block>
                                             </value>
                                             <value name="NOTFOUND">
-                                              <block type="text" id="N;5D.YIMX={1VCa@th%2">
+                                              <block type="text" id="_Z?X+ydGNw]W@$Hc.$u;">
                                                 <field name="TEXT"></field>
                                               </block>
                                             </value>
                                           </block>
                                         </value>
                                         <next>
-                                          <block type="component_method" id="dAq8@}qoTbR)zld^(!%K">
+                                          <block type="component_method" id="FQx;~f8WL%{MW8I*w]3m">
                                             <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                                             <field name="COMPONENT_SELECTOR">TinyDB1</field>
                                             <value name="ARG0">
-                                              <block type="text" id="x!])}F2s:s)b[I6+2K%P">
-                                                <field name="TEXT">user_auth</field>
+                                              <block type="text" id="ZAR5H!(,JCL:4FtOqar)">
+                                                <field name="TEXT">user_user_name</field>
                                               </block>
                                             </value>
                                             <value name="ARG1">
-                                              <block type="lists_lookup_in_pairs" id=":B=8w~^C.%=rM*Rf75;a">
+                                              <block type="lists_lookup_in_pairs" id="*%Xp#xAhQY6]zYB5/m{F">
                                                 <value name="KEY">
-                                                  <block type="text" id="h]?y#k}2Bp2rXPUg#c!@">
-                                                    <field name="TEXT">auth</field>
+                                                  <block type="text" id="+~fO:D8:l50QbI+=XXQz">
+                                                    <field name="TEXT">user_name</field>
                                                   </block>
                                                 </value>
                                                 <value name="LIST">
-                                                  <block type="lexical_variable_get" id="^;ePY[D%@HzTFrDfD7ch">
+                                                  <block type="lexical_variable_get" id="@z=st5gsB-DndK`#;p-_">
                                                     <field name="VAR">user_data</field>
                                                   </block>
                                                 </value>
                                                 <value name="NOTFOUND">
-                                                  <block type="text" id="_Z?X+ydGNw]W@$Hc.$u;">
+                                                  <block type="text" id="AOXYIXt8;gLiW`KOGWq/">
                                                     <field name="TEXT"></field>
                                                   </block>
                                                 </value>
                                               </block>
                                             </value>
                                             <next>
-                                              <block type="component_method" id="FQx;~f8WL%{MW8I*w]3m">
+                                              <block type="component_method" id="N:SeXxxwW,-4OYC2z%E8">
                                                 <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
                                                 <field name="COMPONENT_SELECTOR">TinyDB1</field>
                                                 <value name="ARG0">
-                                                  <block type="text" id="ZAR5H!(,JCL:4FtOqar)">
-                                                    <field name="TEXT">user_user_name</field>
+                                                  <block type="text" id="e8n?IMYVQa214,j/:ygC">
+                                                    <field name="TEXT">user_acne_products</field>
                                                   </block>
                                                 </value>
                                                 <value name="ARG1">
-                                                  <block type="lists_lookup_in_pairs" id="*%Xp#xAhQY6]zYB5/m{F">
+                                                  <block type="lists_lookup_in_pairs" id="F#6awZsh|C{Le@jfw-vT">
                                                     <value name="KEY">
-                                                      <block type="text" id="+~fO:D8:l50QbI+=XXQz">
-                                                        <field name="TEXT">user_name</field>
+                                                      <block type="text" id="!WZt@5}nrv=w_QsJgGBq">
+                                                        <field name="TEXT">acne_products</field>
                                                       </block>
                                                     </value>
                                                     <value name="LIST">
-                                                      <block type="lexical_variable_get" id="@z=st5gsB-DndK`#;p-_">
+                                                      <block type="lexical_variable_get" id="=X4_y]wo/oe0d]cmk$q?">
                                                         <field name="VAR">user_data</field>
                                                       </block>
                                                     </value>
                                                     <value name="NOTFOUND">
-                                                      <block type="text" id="AOXYIXt8;gLiW`KOGWq/">
+                                                      <block type="text" id="YIspn6wH,$deq-Woe%Ix">
                                                         <field name="TEXT"></field>
                                                       </block>
                                                     </value>
                                                   </block>
                                                 </value>
-                                                <next>
-                                                  <block type="component_method" id="N:SeXxxwW,-4OYC2z%E8">
-                                                    <mutation component_type="TinyDB" method_name="StoreValue" is_generic="false" instance_name="TinyDB1"></mutation>
-                                                    <field name="COMPONENT_SELECTOR">TinyDB1</field>
-                                                    <value name="ARG0">
-                                                      <block type="text" id="e8n?IMYVQa214,j/:ygC">
-                                                        <field name="TEXT">user_acne_products</field>
-                                                      </block>
-                                                    </value>
-                                                    <value name="ARG1">
-                                                      <block type="lists_lookup_in_pairs" id="F#6awZsh|C{Le@jfw-vT">
-                                                        <value name="KEY">
-                                                          <block type="text" id="!WZt@5}nrv=w_QsJgGBq">
-                                                            <field name="TEXT">acne_products</field>
-                                                          </block>
-                                                        </value>
-                                                        <value name="LIST">
-                                                          <block type="lexical_variable_get" id="=X4_y]wo/oe0d]cmk$q?">
-                                                            <field name="VAR">user_data</field>
-                                                          </block>
-                                                        </value>
-                                                        <value name="NOTFOUND">
-                                                          <block type="text" id="YIspn6wH,$deq-Woe%Ix">
-                                                            <field name="TEXT"></field>
-                                                          </block>
-                                                        </value>
-                                                      </block>
-                                                    </value>
-                                                  </block>
-                                                </next>
                                               </block>
                                             </next>
                                           </block>
@@ -2860,9 +2848,9 @@
                   </block>
                 </next>
               </block>
-            </statement>
+            </next>
           </block>
-        </next>
+        </statement>
       </block>
     </statement>
   </block>
