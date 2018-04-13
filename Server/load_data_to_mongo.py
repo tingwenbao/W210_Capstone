@@ -918,7 +918,7 @@ def test_estimators(est_dicts, model):
             est_dict['callable'],
             est_dict['params'],
             n_jobs=-1,
-            scoring='accuracy',
+            scoring='f1_micro',
             verbose=True)
         grid.fit(X, y)
         score, std_dev, est_call = (
@@ -955,7 +955,7 @@ def plot_best_estimator(estimator_results, custom_axis=None):
             "{:.2f}\n(+/-{:.2E})".format(1.0 * result[0], result[1]),
             (i+0.05, 1.0 * result[0]))
 
-    plt.title("Estimator Accuracy with Average Standard Deviation")
+    plt.title("Estimator F1 Score with Average Standard Deviation")
     plt.legend()
     for tick in ax.get_xticklabels():
         tick.set_rotation(50)
