@@ -13,6 +13,7 @@
 1. Run `sudo apt-get install tesseract-ocr`
 1. Copy `cosmetics_app.py` to your designated folder on the server
 1. Copy `ewg_ingredients.json` to the same folder
+1. Start MongoDB by `sudo service mongod start`
 1. Run `python3 cosmetics_app.py` will start the server for running or testing the app
     1. Use `tmux` to keep the server running in case the session ends.
 
