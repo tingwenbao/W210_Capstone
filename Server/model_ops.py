@@ -406,12 +406,12 @@ def build_opt_model(host='localhost', port=27017, bld_model='', model_opt=''):
         build_product_model(host, port)
     elif bld_model == 'ppl':
         build_people_model(host, port)
-    else:
+    elif bld_model:
         print('No action performed, bld_model must one of "prod" or "ppl"')
 
     if model_opt == 'prod':
         optimize_product_model(host, port)
     elif model_opt == 'ppl':
         optimize_people_model(host, port)
-    else:
+    elif model_opt:
         print('No action performed, model_opt must one of "prod" or "ppl"')
