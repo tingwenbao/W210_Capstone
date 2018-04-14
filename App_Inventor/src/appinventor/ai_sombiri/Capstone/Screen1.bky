@@ -168,7 +168,7 @@
       </block>
     </value>
   </block>
-  <block type="procedures_defnoreturn" id="!F1PS~_#}p^7i~ZN9e.Q" x="-1010" y="-1110">
+  <block type="procedures_defnoreturn" id="!F1PS~_#}p^7i~ZN9e.Q" x="-1030" y="-1130">
     <mutation>
       <arg name="config"></arg>
     </mutation>
@@ -342,6 +342,35 @@
                                             <field name="VAR">global config_barcode</field>
                                           </block>
                                         </value>
+                                        <next>
+                                          <block type="component_set_get" id=";`4VzJCV/Qf5GG+KFBoI">
+                                            <mutation component_type="Actionbar" set_or_get="set" property_name="TextTitleAccionBar" is_generic="false" instance_name="Actionbar1"></mutation>
+                                            <field name="COMPONENT_SELECTOR">Actionbar1</field>
+                                            <field name="PROP">TextTitleAccionBar</field>
+                                            <value name="VALUE">
+                                              <block type="text" id="jmQ3Xmgg$zTuB?d;l0~F">
+                                                <field name="TEXT">Barcode Scanner</field>
+                                              </block>
+                                            </value>
+                                            <next>
+                                              <block type="component_method" id="7H!q5Z;8q6wDGiTiUZ5I">
+                                                <mutation component_type="Actionbar" method_name="ActionBar2" is_generic="false" instance_name="Actionbar1"></mutation>
+                                                <field name="COMPONENT_SELECTOR">Actionbar1</field>
+                                                <value name="ARG0">
+                                                  <block type="component_component_block" id="]N2t]94QIBG0rS.nb)S)">
+                                                    <mutation component_type="HorizontalArrangement" instance_name="actionBar_ha_barcode"></mutation>
+                                                    <field name="COMPONENT_SELECTOR">actionBar_ha_barcode</field>
+                                                  </block>
+                                                </value>
+                                                <value name="ARG1">
+                                                  <block type="lexical_variable_get" id="6i@)y}sl)H*#Li(*]E41">
+                                                    <field name="VAR">global actionBarOptions</field>
+                                                  </block>
+                                                </value>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
                                       </block>
                                     </next>
                                   </block>
@@ -2234,7 +2263,7 @@
                                 </statement>
                                 <next>
                                   <block type="controls_if" id="}iMoU)GP6]_2_k2Xj!..">
-                                    <mutation else="1"></mutation>
+                                    <mutation elseif="1"></mutation>
                                     <value name="IF0">
                                       <block type="lists_lookup_in_pairs" id="S|,0L,.sI5pfqTwtL]%E">
                                         <value name="KEY">
@@ -2382,7 +2411,26 @@
                                         </next>
                                       </block>
                                     </statement>
-                                    <statement name="ELSE">
+                                    <value name="IF1">
+                                      <block type="lists_lookup_in_pairs" id="i.{ecloZ6DAqv`T,UV|Q">
+                                        <value name="KEY">
+                                          <block type="text" id="8e7iBH2dj26@,~w(q9Db">
+                                            <field name="TEXT">no_suggestions</field>
+                                          </block>
+                                        </value>
+                                        <value name="LIST">
+                                          <block type="lexical_variable_get" id="Y|h_dRPKf?SlZjlfQGwa">
+                                            <field name="VAR">decodedJSON</field>
+                                          </block>
+                                        </value>
+                                        <value name="NOTFOUND">
+                                          <block type="logic_false" id="L2k.QT.TlI!R`3NLOXp6">
+                                            <field name="BOOL">FALSE</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </value>
+                                    <statement name="DO1">
                                       <block type="component_set_get" id="xGna=VPnTff-JF@fW(fL">
                                         <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="status_lbl"></mutation>
                                         <field name="COMPONENT_SELECTOR">status_lbl</field>
@@ -3463,28 +3511,23 @@
     <field name="NAME">actionBarOptions</field>
     <value name="VALUE">
       <block type="lists_create_with" id="EGdLJecTsOHpuM_;.._+">
-        <mutation items="5"></mutation>
+        <mutation items="4"></mutation>
         <value name="ADD0">
           <block type="text" id="(Ahvk#Fr;}T0Hy%.9]sx">
             <field name="TEXT">Product Report</field>
           </block>
         </value>
         <value name="ADD1">
-          <block type="text" id="jU}k@alCn+$||mY3G$#x">
-            <field name="TEXT">Ingredient Report</field>
-          </block>
-        </value>
-        <value name="ADD2">
           <block type="text" id=":C%8dGs@-oTgI8CTVc/O">
             <field name="TEXT">Scan Barcode</field>
           </block>
         </value>
-        <value name="ADD3">
+        <value name="ADD2">
           <block type="text" id="6WO1!2YYR~c@v`N,Gu1O">
             <field name="TEXT">Scan Ingredients</field>
           </block>
         </value>
-        <value name="ADD4">
+        <value name="ADD3">
           <block type="text" id="4F}BZl0096H~og}d8Lgo">
             <field name="TEXT">Logout</field>
           </block>
@@ -3606,7 +3649,7 @@
                 </value>
                 <value name="TEXT2">
                   <block type="text" id="O{k[2SM?oj5_spfIkk]_">
-                    <field name="TEXT">Scan Barcode</field>
+                    <field name="TEXT">Scan Ingredients</field>
                   </block>
                 </value>
               </block>
@@ -4140,6 +4183,18 @@
                                                         <field name="VAR">global allergy_imm_tox_score</field>
                                                       </block>
                                                     </value>
+                                                    <next>
+                                                      <block type="component_set_get" id="C4Wh,IpopbQ3Pp@$TVMr">
+                                                        <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="status_lbl"></mutation>
+                                                        <field name="COMPONENT_SELECTOR">status_lbl</field>
+                                                        <field name="PROP">Text</field>
+                                                        <value name="VALUE">
+                                                          <block type="text" id="f(@^4)wsX`[x$/OfGIZu">
+                                                            <field name="TEXT"></field>
+                                                          </block>
+                                                        </value>
+                                                      </block>
+                                                    </next>
                                                   </block>
                                                 </next>
                                               </block>
