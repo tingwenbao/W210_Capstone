@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 
 PROD_COMO = []
+T_TYPE = 'product'
 
 PEOPLE_DB = None
 PRODUCTS_DB = None
@@ -55,7 +56,7 @@ def build_product_model(host, port, **kwargs):
         'mica']
 
     # Tokenizer for product ingredient lists
-    def get_ingredients_as_list(product):
+    def get_prod_ings_as_list(product):
         '''
         Queries the ingredients DB for a given product's ingredient list
         and returns the ingredient list as a list of ingredient strings
@@ -69,7 +70,7 @@ def build_product_model(host, port, **kwargs):
 
     print('Vectorizing product ingredient lists')
     tfidf_vect = TfidfVectorizer(
-        tokenizer=get_ingredients_as_list,
+        tokenizer=get_prod_ings_as_list,
         lowercase=False,
         stop_words=stop_words)
     X = tfidf_vect.fit_transform(products)
@@ -110,43 +111,64 @@ def get_ingredient_vocabulary(host, port, **kwargs):
     return ret
 
 
+def set_tokenizer_type(t_type):
+    global T_TYPE
+    if t_type not in ['product', 'ingredient']:
+        raise RuntimeError(
+            "The input tokenizer type '"
+            + str(t_type)
+            + "' was invalid")
+    else:
+        T_TYPE = t_type
+    pass
+
+
 # Tokenizer for ingredient lists
-def get_ingredients_as_list(p_list):
+def get_ingredients_as_list(p_list_or_i):
     '''
     Queries the products and ingredients DBs for ingredients contained within
-    the products given by the input list of Object_Ids.
+    the products given by the input list of Object_Ids. Changing the tokenizer
+    type variable 'T_TYPE' to ingredient causes this function to expect ObjectIds
+    referring to infredients as input.
     Note: The each DB query is performed once using all object
     IDs simultaneously. This function performs no more than 2 queries when run.
     '''
     global PROD_COMO
 
-    if not p_list:
+    if not p_list_or_i:
         return []
-    elif type(p_list) is str or type(p_list) is ObjectId:
+    elif type(p_list_or_i) is str or type(p_list_or_i) is ObjectId:
         # Query a single ObjectId
-        prod_fltr = {'_id': p_list}
+        prod_fltr = {'_id': p_list_or_i}
     else:
-        # Build list of ingredient ObjectIds contained in the p_list
-        prod_fltr = {'_id': {'$in': p_list}}
+        # Build list of ingredient ObjectIds contained in the product list
+        prod_fltr = {'_id': {'$in': p_list_or_i}}
 
-    prod_prjctn = {
-        '_id': False,
-        'ingredient_list': True,
-        'comodegenic': True}
-    db_objects = PRODUCTS_DB.read(prod_fltr, projection=prod_prjctn)
+    if T_TYPE == 'product':
+        prod_prjctn = {
+            '_id': False,
+            'ingredient_list': True,
+            'comodegenic': True}
+        db_objects = PRODUCTS_DB.read(prod_fltr, projection=prod_prjctn)
 
-    # Get ObjectIds from all product ingredients
-    ing_list = set()  # Using set eliminates duplicate values
-    for i in db_objects:
-        ing = DB_Object.build_from_dict(i)
-        ing_list.update(ing.get('ingredient_list', ''))
-        PROD_COMO.append(ing.get('comodegenic', 0))  # Create column of comodegenic scores
+        # Get ObjectIds from all product ingredients
+        ing_list = set()  # Using set eliminates duplicate values
+        for i in db_objects:
+            ing = DB_Object.build_from_dict(i)
+            ing_list.update(ing.get('ingredient_list', ''))
+            PROD_COMO.append(ing.get('comodegenic', 0))  # Create column of comodegenic scores
 
-    # Build list of all ingredient names
-    ing_fltr = {'_id': {'$in': list(ing_list)}}
-    ing_prjctn = {'_id': False, 'ingredient_name': True}
-    db_objects = INGREDIENTS_DB.read(ing_fltr, projection=ing_prjctn)
-    return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
+        # Build list of all ingredient names
+        ing_fltr = {'_id': {'$in': list(ing_list)}}
+        ing_prjctn = {'_id': False, 'ingredient_name': True}
+        db_objects = INGREDIENTS_DB.read(ing_fltr, projection=ing_prjctn)
+        return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
+    else:
+        # Return the ingredient name
+        ing_fltr = {'_id': p_list_or_i}
+        ing_prjctn = {'_id': False, 'ingredient_name': True}
+        db_objects = INGREDIENTS_DB.read(ing_fltr, projection=ing_prjctn)
+        return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
 
 
 def build_people_model(host, port, **kwargs):
@@ -387,20 +409,29 @@ def optimize_people_model(host, port):
         pdump(estimator_results, pickle_out)
 
 
-def build_opt_model(host='localhost', port=27017, bld_model='', model_opt=''):
-    # initializing the MongoClient, this helps to
-    # access the MongoDB databases and collections
-
+def initialize_connections(host, port):
     # Connect to database
     global PEOPLE_DB
     global PRODUCTS_DB
     global INGREDIENTS_DB
+    global TEST_DB
+    global COMODEGENIC_DB
     global MODEL_DB
 
     PEOPLE_DB = DB_CRUD(host, port, db='capstone', col='people')
     PRODUCTS_DB = DB_CRUD(host, port, db='capstone', col='products')
     INGREDIENTS_DB = DB_CRUD(host, port, db='capstone', col='ingredients')
+    TEST_DB = DB_CRUD(host, port, db='capstone', col='testing')
+    COMODEGENIC_DB = DB_CRUD(host, port, db='capstone', col='comodegenic')
     MODEL_DB = DB_CRUD(host, port, db='capstone', col='model')
+
+
+def build_opt_model(host='localhost', port=27017, bld_model='', model_opt=''):
+    # initializing the MongoClient, this helps to
+    # access the MongoDB databases and collections
+
+    # Connect to databases
+    initialize_connections(host, port)
 
     if bld_model == 'prod':
         build_product_model(host, port)
