@@ -17,8 +17,9 @@ from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
 from bson.objectid import ObjectId
-from load_data_to_mongo import get_ingredient_vocabulary
-from load_data_to_mongo import get_ingredients_as_list
+from model_ops import (
+    get_ingredient_vocabulary,
+    get_ingredients_as_list)
 from load_data_to_mongo import initialize_connections
 import numpy as np
 
