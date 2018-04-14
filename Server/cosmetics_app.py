@@ -19,8 +19,10 @@ from db_object import DB_Object, JSONEncoder
 from bson.objectid import ObjectId
 from model_ops import (
     get_ingredient_vocabulary,
-    get_ingredients_as_list)
-from load_data_to_mongo import initialize_connections
+    get_ingredients_as_list,
+    set_tokenizer_type)
+from model_ops import initialize_connections as model_ops_init
+from load_data_to_mongo import initialize_connections as stats_init
 import numpy as np
 
 from PIL import Image
@@ -322,7 +324,9 @@ class MyHandler(BaseHTTPRequestHandler):
                         'item_suggestions':  results
                     }
                 else:
-                    response = {}
+                    response = {
+                        'no_suggestions':  results
+                    }
                 print('[RESPONSE]', response)
 
                 s.do_HEAD()
@@ -420,12 +424,14 @@ class MyHandler(BaseHTTPRequestHandler):
                 if recv_data.get('search_type', '') == 'product':
                     # Search type is product
                     # For products, get ingredients
-                    tokenizer = get_ingredients_as_list
+                    #tokenizer = get_ingredients_as_list
+                    set_tokenizer_type('product')
                     pass
                 else:
                     # Search type is ingredient
                     # For ingredients, return ingredient name
-                    tokenizer = s.ingredient_id_tokenizer
+                    #tokenizer = s.ingredient_id_tokenizer
+                    set_tokenizer_type('ingredient')
 
                 # Removed unused entries
                 del recv_data['search_type']
@@ -440,18 +446,15 @@ class MyHandler(BaseHTTPRequestHandler):
                 d_vect = DICT_VECTORIZER
                 X_demo = d_vect.transform(X_demo_lst)  # X_demo is now a numpy array
 
-                #vectorizer = TfidfVectorizer(
-                #    tokenizer=tokenizer,
-                #    lowercase=False,
-                #    vocabulary=ING_VOCAB)
-                vectorizer = TFIDF_VECTORIZER
-                X_itm = vectorizer.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
+                tf_idf_vect = TFIDF_VECTORIZER
+                X_itm = tf_idf_vect.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
 
                 X = hstack([csr_matrix(X_demo), X_itm], format="csr")
 
                 prediction = CLF.predict(X)
 
                 response = {"acne_prediction": int(prediction)}
+                print('response', response)
 
                 s.do_HEAD()
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
@@ -510,7 +513,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # App databases
-    initialize_connections(args.db_host, args.db_port)
+    stats_init(args.db_host, args.db_port)
+    model_ops_init(args.db_host, args.db_port)
     PEOPLE_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='people')
     PRODUCTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='products')
     INGREDIENTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='ingredients')
