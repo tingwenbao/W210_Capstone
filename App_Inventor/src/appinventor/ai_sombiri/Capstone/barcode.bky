@@ -182,7 +182,7 @@
               <block type="controls_openAnotherScreen" id="NYLW2qf}2+`+niY3:WQ?">
                 <value name="SCREEN">
                   <block type="text" id="%}G0oPaEbBVxyoD@=C5x">
-                    <field name="TEXT">Product_report_simple</field>
+                    <field name="TEXT">product_report</field>
                   </block>
                 </value>
               </block>

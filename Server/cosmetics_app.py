@@ -16,7 +16,10 @@ from load_data_to_mongo import display_db_stats
 from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
-from load_data_to_mongo import get_ingredient_vocabulary, get_ingredients_as_list
+from bson.objectid import ObjectId
+from load_data_to_mongo import get_ingredient_vocabulary
+from load_data_to_mongo import get_ingredients_as_list
+from load_data_to_mongo import initialize_connections
 import numpy as np
 
 from PIL import Image
@@ -39,6 +42,7 @@ INGREDIENTS_DB = None
 COMODEGENIC_DB = None
 CLF = None
 ING_VOCAB = None
+DICT_VECTORIZER = None
 
 def change_contrast(img, level):
     factor = (259 * (level + 255)) / (255 * (259 - level))
@@ -131,7 +135,42 @@ class MyHandler(BaseHTTPRequestHandler):
 
         sorted_query = query.sort([('score', {'$meta': 'textScore'})])
 
-        return [{"product_id": str(item['_id']), "product_name": item['product_name']} for item in sorted_query]
+        return [{"product_id": str(item['_id']), "product_name": item['product_name']}
+                for item in sorted_query]
+
+    def get_score(s, search_str, col='ingredient'):
+        """ Check DB to see if username is avaialble"""
+
+        if not search_str:
+            return []
+
+        if col == 'ingredient':
+            collection = INGREDIENTS_DB
+            prjctn = {
+                'ingredient_name': True,
+                'cancer_score': True,
+                'allergy_imm_tox_score': True,
+                'ingredient_score': True,
+                'dev_reprod_tox_score': True,
+                'score': {'$meta': 'textScore'}}
+        else:
+            collection = PRODUCTS_DB
+            prjctn = {
+                'product_name': True,
+                'cancer_score': True,
+                'allergy_imm_tox_score': True,
+                'product_score': True,
+                'dev_reprod_tox_score': True,
+                'score': {'$meta': 'textScore'}}
+
+        query = collection.read(
+            {'$text': {'$search': unquote_plus(search_str)}},
+            limit=100,
+            projection=prjctn)
+
+        sorted_query = query.sort([('score', {'$meta': 'textScore'})])
+
+        return [DB_Object.build_from_dict(item) for item in sorted_query]
 
     def do_HEAD(s):
         s.send_response(200)
@@ -164,7 +203,10 @@ class MyHandler(BaseHTTPRequestHandler):
             s.end_headers()
 
             # Send user data to app
-            response = s.person_data
+            response = {
+                'authenticated': True,
+                'user_data': s.person_data
+            }
             print('User Athenticated', json.dumps(response, cls=JSONEncoder))
             s.wfile.write(bytes(json.dumps(response, cls=JSONEncoder), 'utf-8'))
 
@@ -172,7 +214,7 @@ class MyHandler(BaseHTTPRequestHandler):
             s.do_AUTHHEAD()
 
             response = {
-                'success': False,
+                'authenticated': False,
                 'error': 'Invalid credentials'
             }
 
@@ -191,6 +233,7 @@ class MyHandler(BaseHTTPRequestHandler):
             }
 
             s.do_HEAD()
+            print('checkuser', json.dumps(response, cls=JSONEncoder))
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
         elif s.path == '/suggestproducts':
@@ -202,6 +245,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 'prod_suggestions': s.get_prod_suggestions(search_str),
             }
 
+            print('[RESPONSE]', response)
             s.do_HEAD()
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
@@ -259,31 +303,30 @@ class MyHandler(BaseHTTPRequestHandler):
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
             if s.path == '/searchterm':
-                length = s.headers['content-length']
-                data = s.rfile.read(int(length))
-                decoded = data.decode()
-                search_str = unquote_plus(str(decoded).replace('search_term=', ''))
+                form = cgi.FieldStorage(
+                    fp=s.rfile,
+                    headers=s.headers,
+                    environ={'REQUEST_METHOD': 'POST'}
+                )
 
-                print('SEARCH_STR: ', search_str)
+                search_str = form.getvalue("search_term")
+                search_typ = form.getvalue("search_type")
+                print('[SEARCH TERM]', search_str)
+                print('[SEARCH TYPE]', search_typ)
 
-                # REPLACE WITH DB CALL
-                # import ingredient score and search and return score of the search term
-                with open('ewg_ingredients.json') as jsondata:
-                    ingredients = json.load(jsondata)
-                    jsondata.close()
+                results = s.get_score(search_str, search_typ)
 
-                ewg_ingredient = pd.DataFrame.from_dict(ingredients, orient='index')
-                matched_term = process.extract(
-                    search_str,
-                    ewg_ingredient['ingredient_name'],
-                    limit=1)[0][0]
-                record_filter = ewg_ingredient.ingredient_name == matched_term
-                matched_record = ewg_ingredient[record_filter][s.record_data]
-                results = matched_record.to_json(orient='index')
-                print(results)
+                if results:
+                    response = {
+                        'item_suggestions':  results
+                    }
+                else:
+                    response = {}
+                print('[RESPONSE]', response)
 
                 s.do_HEAD()
-                s.wfile.write(results.encode("utf-8"))
+                s.wfile.write(
+                    bytes(json.dumps(response, cls=JSONEncoder), 'utf-8'))
 
             if s.path == '/upload':
                 print("Recognize /upload")
@@ -347,14 +390,14 @@ class MyHandler(BaseHTTPRequestHandler):
                 print("[R]:", r)
 
                 response = {
-                    'success': True,
+                    'ocr_acknowledge': True,
                     'ingredients': ingredient_list
                 }
 
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
-            if s.path == '/predict_product_acne':
-                print('predict_product_acne')
+            if s.path == '/predict_acne':
+                print('predict_acne')
 
                 # Build matrix to predict on
                 form = cgi.FieldStorage(
@@ -363,40 +406,49 @@ class MyHandler(BaseHTTPRequestHandler):
                     environ={'REQUEST_METHOD': 'POST'}
                 )
                 recv_data = {
-                    'user_age': int(form.getvalue("user_age")),
-                    'user_race': form.getvalue("user_race"),
-                    'user_skin': form.getvalue("user_skin"),
-                    'user_birth_sex': form.getvalue("user_birth_sex"),
-                    'user_acne_products': json.loads(form.getvalue("user_acne_products"))}
-                print(recv_data)
+                    'race': form.getvalue("user_race"),
+                    'birth_sex': form.getvalue("user_birth_sex"),
+                    'age': int(form.getvalue("user_age")),
+                    'skin': form.getvalue("user_skin"),
+                    'acne': form.getvalue("user_acne"),
+                    'acne_products': [ObjectId(form.getvalue("user_item_id"))],
+                    'search_type': form.getvalue("search_type")}
 
-                # Product ingredients info
-                X_prod_lst = [recv_data.pop('user_acne_products')]
+                if recv_data.get('search_type', '') == 'product':
+                    # Search type is product
+                    # For products, get ingredients
+                    tokenizer = get_ingredients_as_list
+                    pass
+                else:
+                    # Search type is ingredient
+                    # For ingredients, return ingredient name
+                    tokenizer = s.ingredient_id_tokenizer
+
+                # Removed unused entries
+                del recv_data['search_type']
+
+                # Ingredients info
+                X_itm_lst = recv_data.pop('acne_products')
 
                 # Demographic info
                 X_demo_lst = [recv_data]
 
                 # Vectorize data
-                d_vect = DictVectorizer(sparse=False)
-                X_demo = d_vect.fit_transform(X_demo_lst)  # X_demo is now a numpy array
+                d_vect = DICT_VECTORIZER
+                X_demo = d_vect.transform(X_demo_lst)  # X_demo is now a numpy array
 
-                vectorizer = TfidfVectorizer(
-                    tokenizer=get_ingredients_as_list,
-                    lowercase=False,
-                    vocabulary=ING_VOCAB)
-                X_prod = vectorizer.fit_transform(X_prod_lst)  # X_prod is now a CSR sparse matrix
+                #vectorizer = TfidfVectorizer(
+                #    tokenizer=tokenizer,
+                #    lowercase=False,
+                #    vocabulary=ING_VOCAB)
+                vectorizer = TFIDF_VECTORIZER
+                X_itm = vectorizer.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
 
-                X = hstack([csr_matrix(X_demo), X_prod], format="csr")
+                X = hstack([csr_matrix(X_demo), X_itm], format="csr")
 
                 prediction = CLF.predict(X)
-                import ipdb
-                ipdb.set_trace()
 
-                status = s.create_new_user(recv_data)
-                if status.acknowledged:
-                    response = {"create_user": str(status.inserted_id)}
-                else:
-                    response = {"create_user": None}
+                response = {"acne_prediction": int(prediction)}
 
                 s.do_HEAD()
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
@@ -455,6 +507,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # App databases
+    initialize_connections(args.db_host, args.db_port)
     PEOPLE_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='people')
     PRODUCTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='products')
     INGREDIENTS_DB = DB_CRUD(args.db_host, args.db_port, db='capstone', col='ingredients')
@@ -462,15 +515,22 @@ if __name__ == '__main__':
 
     # Load people model
     result_data = 'estimator_results.pickle'
+    ppl_model_data = 'ppl_model_data.pickle'
     print("Loading model data")
     try:
         with open(result_data, "rb") as pickle_in:
             CLF = pload(pickle_in)['RandomForestClassifier'][2]
+        with open(ppl_model_data, "rb") as pickle_in:
+            mdl = pload(pickle_in)
+            DICT_VECTORIZER = mdl['d_vect']
+            TFIDF_VECTORIZER = mdl['tfidf_vect']
+            ING_VOCAB = mdl['vocabulary']
         print('Loaded from Pickle')
-    except Exception as e:
-        print("Model load failed", e)
+    except IOError as e:
+        print(
+            "Model load failed, ensure model data has been generated "
+            "using load_data_to_mongo.py", e)
         exit()
-    ING_VOCAB = get_ingredient_vocabulary(args.db_host, args.db_port)
 
     display_db_stats(args.db_host, args.db_port)
 

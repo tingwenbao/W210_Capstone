@@ -14,6 +14,7 @@ from db_object import DB_Object, JSONEncoder
 import json
 import numpy as np
 from bson.binary import Binary
+from bson.objectid import ObjectId
 from pymongo import TEXT, ASCENDING, DESCENDING
 import base64
 from pickle import dumps as pdumps
@@ -59,6 +60,7 @@ from sklearn.pipeline import Pipeline
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 from matplotlib.pyplot import cm
 from ml_test_params import *
+from demo_multipliers import get_multiplier
 
 # Fake info generator
 fake = Faker()
@@ -83,6 +85,7 @@ INGREDIENTS_DB = None
 TEST_DB = None
 COMODEGENIC_DB = None
 MODEL_DB = None
+PROD_COMO = []
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via input() and return their answer.
@@ -513,6 +516,7 @@ def generate_people(host, port, num_generate_people=10000):
 
     # Get comodegenic products
     print("Getting list of comodegenic products")
+    # 0 value comodegeinc scores are null data
     db_objects = PRODUCTS_DB.read({'comodegenic': {"$gt": 0}})
     products = [DB_Object.build_from_dict(p) for p in db_objects]
 
@@ -533,19 +537,22 @@ def generate_people(host, port, num_generate_people=10000):
     # Populate acne causing products for each person
     for person in p_list:
         p_products = []
-        rand_idx = np.abs(np.random.choice(len(products))-1)
-        prod_como = products[rand_idx]['comodegenic']
-        probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
-        for i in range(np.random.choice(5)):
+        for i in range(np.random.choice(10)):
+            rand_idx = np.abs(np.random.choice(len(products))-1)
+            prod_como = products[rand_idx]['comodegenic']
+            probs = [como_scale * prod_como, 1 - (como_scale * prod_como)]
             if person['acne']:
-                # If a person has acne probabilisticly add 0 to 5 known comodegenic products
-                # otherwise probabilisticly add 0 to 5 non-comodegenic products
+                # If a person has acne, probabilisticly add 0 to 5 known
+                # comodegenic products. Otherwise probabilisticly add
+                # 0 to 5 non-comodegenic products
                 if np.random.choice([True, False], p=probs):
                     p_products.append(products[rand_idx]['_id'])
             else:
                 if np.random.choice([False, True], p=probs):
                     p_products.append(products[rand_idx]['_id'])
         person['acne_products'] = p_products
+        #import ipdb
+        #ipdb.set_trace()
 
         # Add person to data base
         new_person = DB_Object.build_from_dict(person)
@@ -673,7 +680,7 @@ def build_product_model(host, port, **kwargs):
     db_objects = PRODUCTS_DB.read(prod_filt, projection=prod_prjctn)
     products = [DB_Object.build_from_dict(p) for p in db_objects]
 
-    # The vectorizer will ignore the following words
+    # The tfidf_vect will ignore the following words
     stop_words = [
         '',
         'water',
@@ -701,11 +708,11 @@ def build_product_model(host, port, **kwargs):
         return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
 
     print('Vectorizing product ingredient lists')
-    vectorizer = TfidfVectorizer(
+    tfidf_vect = TfidfVectorizer(
         tokenizer=get_ingredients_as_list,
         lowercase=False,
         stop_words=stop_words)
-    X = vectorizer.fit_transform(products)
+    X = tfidf_vect.fit_transform(products)
     y = [p['comodegenic'] for p in products]
 
     print('Storing vectorized data and training labels')
@@ -751,18 +758,29 @@ def get_ingredients_as_list(p_list):
     Note: The each DB query is performed once using all object
     IDs simultaneously. This function performs no more than 2 queries when run.
     '''
+    global PROD_COMO
 
     if not p_list:
         return []
+    elif type(p_list) is str or type(p_list) is ObjectId:
+        # Query a single ObjectId
+        prod_fltr = {'_id': p_list}
+    else:
+        # Build list of ingredient ObjectIds contained in the p_list
+        prod_fltr = {'_id': {'$in': p_list}}
 
-    # Build list of ingredient ObjectIds contained in the p_list
-    prod_fltr = {'_id': {'$in': p_list}}
-    prod_prjctn = {'_id': False, 'ingredient_list': True}
+    prod_prjctn = {
+        '_id': False,
+        'ingredient_list': True,
+        'comodegenic': True}
     db_objects = PRODUCTS_DB.read(prod_fltr, projection=prod_prjctn)
-    # Get ObjectIds of all product ingredients
+
+    # Get ObjectIds from all product ingredients
     ing_list = set()  # Using set eliminates duplicate values
     for i in db_objects:
-        ing_list.update(DB_Object.build_from_dict(i).get('ingredient_list', ''))
+        ing = DB_Object.build_from_dict(i)
+        ing_list.update(ing.get('ingredient_list', ''))
+        PROD_COMO.append(ing.get('comodegenic', 0))  # Create column of comodegenic scores
 
     # Build list of all ingredient names
     ing_fltr = {'_id': {'$in': list(ing_list)}}
@@ -772,11 +790,12 @@ def get_ingredients_as_list(p_list):
 
 
 def build_people_model(host, port, **kwargs):
+    global PROD_COMO
     ppl_model_data = 'ppl_model_data.pickle'
     batch_size = kwargs.get('batch_size', 10000)
     vocabulary = get_ingredient_vocabulary(host, port)
 
-    # The vectorizer will ignore the following words
+    # The tfidf_vect will ignore the following words
     stop_words = [
         '',
         'water',
@@ -790,6 +809,14 @@ def build_people_model(host, port, **kwargs):
         'panthenol',
         'mica']
 
+    # Create vectorizers
+    d_vect = DictVectorizer(sparse=False)
+    tfidf_vect = TfidfVectorizer(
+        tokenizer=get_ingredients_as_list,
+        lowercase=False,
+        stop_words=stop_words,
+        vocabulary=vocabulary)
+
     print("Loading people from database, batch_size:", str(batch_size))
     ppl_filt = {}
     ppl_prjctn = {
@@ -802,14 +829,14 @@ def build_people_model(host, port, **kwargs):
         'acne_products': True}  # Don't include any PII
     db_objects = PEOPLE_DB.read(ppl_filt, projection=ppl_prjctn)
 
-    y = []
-    batch_num, pulled = (0, 0)
+    y, demo_mult = [], []
+    batch_num, pulled = 0, 0
     X = None
 
     # Work in batches to build dataset
     while pulled <= db_objects.count(with_limit_and_skip=True):
         # Initialize
-        X_demo_lst, X_prod_lst = ([], [])
+        X_demo_lst, X_prod_lst = [], []
         people = []
 
         print('Parsing batch:', batch_num)
@@ -824,43 +851,54 @@ def build_people_model(host, port, **kwargs):
             break
 
         # Extract features
-        for i in range(len(people)):
-            person = people[i]
-            # Pull product ingredients info
-            X_prod_lst.append(person.pop('acne_products'))
+        for person in people:
+            # Create new entry for each product
+            # Note: Model is only applicable to entries with products
+            for product_id in person.pop('acne_products'):
+                # Pull product ingredients info
+                X_prod_lst.append([product_id])
 
-            # Pull acne indicator
-            y.append(person.pop('acne'))
+                # Pull demographic info
+                X_demo_lst.append(person)
 
-            # Pull demographic info
-            X_demo_lst.append(person)
+                # Generate demographic multiplier
+                mult = get_multiplier(person)
+                demo_mult.append(mult)
 
         # Vectorize data
-        d_vect = DictVectorizer(sparse=False)
         X_demo = d_vect.fit_transform(X_demo_lst)  # X_demo is now a numpy array
-
-        vectorizer = TfidfVectorizer(
-            tokenizer=get_ingredients_as_list,
-            lowercase=False,
-            stop_words=stop_words,
-            vocabulary=vocabulary)
-        X_prod = vectorizer.fit_transform(X_prod_lst)  # X_prod is now a CSR sparse matrix
+        X_prod = tfidf_vect.fit_transform(X_prod_lst)  # X_prod is now a CSR sparse matrix
 
         # Add batch result to output matrix
         if X is not None:
             X_t = hstack([csr_matrix(X_demo), X_prod], format="csr")
-            X = vstack([X, X_t], format="csr")
+            try:
+                X = vstack([X, X_t], format="csr")
+            except ValueError:
+                break
         else:
             # Initialize X
             X = hstack([csr_matrix(X_demo), X_prod], format="csr")
 
         batch_num += 1
 
+    for como, mult in zip(PROD_COMO, demo_mult):
+        val = como * mult
+        if val < 6:
+            y.append(0)
+        elif val < 12:
+            y.append(1)
+        else:
+            y.append(2)
+
     print('Storing vectorized data and training labels')
     # Flatten CSR sparse matrix to strings
     model = {
         'X': X,
-        'y': y
+        'y': y,
+        'd_vect': d_vect,
+        'tfidf_vect': tfidf_vect,
+        'vocabulary': vocabulary
     }
 
     print("Saving model data to disk for next time")
@@ -887,7 +925,7 @@ def test_estimators(est_dicts, model):
             est_dict['callable'],
             est_dict['params'],
             n_jobs=-1,
-            scoring='accuracy',
+            scoring='f1_micro',
             verbose=True)
         grid.fit(X, y)
         score, std_dev, est_call = (
@@ -924,7 +962,7 @@ def plot_best_estimator(estimator_results, custom_axis=None):
             "{:.2f}\n(+/-{:.2E})".format(1.0 * result[0], result[1]),
             (i+0.05, 1.0 * result[0]))
 
-    plt.title("Estimator Accuracy with Average Standard Deviation")
+    plt.title("Estimator F1 Score with Average Standard Deviation")
     plt.legend()
     for tick in ax.get_xticklabels():
         tick.set_rotation(50)
@@ -987,6 +1025,23 @@ def optimize_people_model(host, port):
         "with an IPython shell or python program.")
     with open(result_data, "wb") as pickle_out:
         pdump(estimator_results, pickle_out)
+
+
+def initialize_connections(host, port):
+    # Connect to database
+    global PEOPLE_DB
+    global PRODUCTS_DB
+    global INGREDIENTS_DB
+    global TEST_DB
+    global COMODEGENIC_DB
+    global MODEL_DB
+
+    PEOPLE_DB = DB_CRUD(host, port, db='capstone', col='people')
+    PRODUCTS_DB = DB_CRUD(host, port, db='capstone', col='products')
+    INGREDIENTS_DB = DB_CRUD(host, port, db='capstone', col='ingredients')
+    TEST_DB = DB_CRUD(host, port, db='capstone', col='testing')
+    COMODEGENIC_DB = DB_CRUD(host, port, db='capstone', col='comodegenic')
+    MODEL_DB = DB_CRUD(host, port, db='capstone', col='model')
 
 
 def main(**kwargs):
