@@ -84,7 +84,7 @@ def light_background(img):
             return PIL.ImageOps.invert(img).convert('L')
 
     else:
-        return img.convert(img).convert('L')
+        return img.convert('L')
 
 
 class MyHandler(BaseHTTPRequestHandler):
