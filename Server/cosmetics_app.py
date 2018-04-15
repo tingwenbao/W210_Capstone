@@ -84,7 +84,7 @@ def light_background(img):
             return PIL.ImageOps.invert(img).convert('L')
 
     else:
-        return img.convert(img).convert('L')
+        return img.convert('L')
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -217,9 +217,10 @@ class MyHandler(BaseHTTPRequestHandler):
             s.do_AUTHHEAD()
 
             response = {
-                'authenticated': False,
+                'authentication_failed': True,
                 'error': 'Invalid credentials'
             }
+            print('User Athentication attempt failed', json.dumps(response, cls=JSONEncoder))
 
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
@@ -363,10 +364,12 @@ class MyHandler(BaseHTTPRequestHandler):
                     fh.write(body)
                 # open photo and convert to pure black and white
                 img = change_contrast(Image.open(s.upload_path),100)
+
                 img_final = light_background(img)
                 img_final.save('modified.jpg')
                 i_result = image_to_string(img_final).split("\n")
                 print("[IMAGE RESULT]:", i_result)
+
                 # find the ingredient list part from result and extract it as a list of ingredients
                 start_index = 0
                 end_index = 0

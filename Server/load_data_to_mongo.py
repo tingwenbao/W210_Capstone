@@ -26,7 +26,6 @@ TEST_DB = None
 COMODEGENIC_DB = None
 MODEL_DB = None
 
-
 def destroy_everything(host, port):
     print("Erasing all data")
     print("Erasing people database")
