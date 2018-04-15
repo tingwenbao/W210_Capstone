@@ -10,28 +10,21 @@ from urllib.parse import unquote_plus
 import cgi
 import re
 import json
-import pandas as pd
 import argparse
 from load_data_to_mongo import display_db_stats
 from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
 from bson.objectid import ObjectId
-from model_ops import (
-    get_ingredient_vocabulary,
-    get_ingredients_as_list,
-    set_tokenizer_type)
+from model_ops import set_tokenizer_type
 from model_ops import initialize_connections as model_ops_init
 from load_data_to_mongo import initialize_connections as stats_init
-import numpy as np
 
 from PIL import Image, ImageFilter
 import PIL.ImageOps
-from pytesseract import image_to_string, image_to_boxes
+from pytesseract import image_to_string
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction import DictVectorizer
-from scipy.sparse import csr_matrix, hstack, vstack
+from scipy.sparse import csr_matrix, hstack
 
 SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
 SV_PORT_NUMBER = 9000
@@ -46,6 +39,7 @@ COMODEGENIC_DB = None
 CLF = None
 ING_VOCAB = None
 DICT_VECTORIZER = None
+INGREDIENT_LIST = []
 
 
 def gaussian_blur(img, radius=2, size=3):
@@ -147,8 +141,8 @@ class MyHandler(BaseHTTPRequestHandler):
         return [{"product_id": str(item['_id']), "product_name": item['product_name']}
                 for item in sorted_query]
 
-    def get_score(s, search_str, col='ingredient'):
-        """ Check DB to see if username is avaialble"""
+    def get_suggestions(s, search_str, col='ingredient'):
+        ''' Check DB to see if username is avaialble'''
 
         if not search_str:
             return []
@@ -182,6 +176,7 @@ class MyHandler(BaseHTTPRequestHandler):
         return [DB_Object.build_from_dict(item) for item in sorted_query]
 
     def get_prediction(s, item_list, demo_data):
+        print('INPUT', item_list, demo_data)
         # Ingredients info
         X_itm_lst = item_list
 
@@ -343,7 +338,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 print('[SEARCH TERM]', search_str)
                 print('[SEARCH TYPE]', search_typ)
 
-                results = s.get_score(search_str, search_typ)
+                results = s.get_suggestions(search_str, search_typ)
 
                 if results:
                     response = {
@@ -398,14 +393,15 @@ class MyHandler(BaseHTTPRequestHandler):
                 i_result = image_to_string(img_final).split("\n")
                 print("[IMAGE RESULT]:", i_result)
 
-                ingredient_list = re.split('[,.;:]', ' '.join(i_result))
+                global INGREDIENT_LIST
+                # Store the OCR image list until user sends demographic info
+                INGREDIENT_LIST = re.split('[,.;:]', ' '.join(i_result))
 
-                print("[INGREDIENT LIST]:", ingredient_list)
-                #print("[R]:", r)
+                print("[INGREDIENT LIST]:", INGREDIENT_LIST)
 
                 response = {
                     'ocr_acknowledge': True,
-                    'ingredients': ingredient_list
+                    'ingredients': INGREDIENT_LIST
                 }
 
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
@@ -419,16 +415,16 @@ class MyHandler(BaseHTTPRequestHandler):
                     headers=s.headers,
                     environ={'REQUEST_METHOD': 'POST'}
                 )
-                recv_data = {
+                i_id = form.getvalue("user_item_id")
+                search_type = form.getvalue("search_type")
+                demo_data = {
                     'race': form.getvalue("user_race"),
                     'birth_sex': form.getvalue("user_birth_sex"),
                     'age': int(form.getvalue("user_age")),
                     'skin': form.getvalue("user_skin"),
-                    'acne': form.getvalue("user_acne"),
-                    'acne_products': [ObjectId(form.getvalue("user_item_id"))],
-                    'search_type': form.getvalue("search_type")}
+                    'acne': form.getvalue("user_acne")}
 
-                if recv_data.get('search_type', '') == 'product':
+                if search_type == 'product':
                     # Search type is product
                     # For products, get ingredients
                     #tokenizer = get_ingredients_as_list
@@ -440,12 +436,15 @@ class MyHandler(BaseHTTPRequestHandler):
                     #tokenizer = s.ingredient_id_tokenizer
                     set_tokenizer_type('ingredient')
 
-                # Removed unused entries
-                del recv_data['search_type']
-
-                prediction = s.get_prediction(
-                    recv_data.pop('acne_products'),
-                    [recv_data])
+                if i_id == 'ocr_predict':
+                    set_tokenizer_type('OCR_list')
+                    prediction = s.get_prediction(
+                        [INGREDIENT_LIST],
+                        [demo_data])
+                else:
+                    prediction = s.get_prediction(
+                        [ObjectId(i_id)],
+                        [demo_data])
 
                 response = {"acne_prediction": int(prediction)}
                 print('response', response)

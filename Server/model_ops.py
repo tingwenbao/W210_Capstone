@@ -113,7 +113,7 @@ def get_ingredient_vocabulary(host, port, **kwargs):
 
 def set_tokenizer_type(t_type):
     global T_TYPE
-    if t_type not in ['product', 'ingredient']:
+    if t_type not in ['product', 'ingredient', 'OCR_list']:
         raise RuntimeError(
             "The input tokenizer type '"
             + str(t_type)
@@ -121,6 +121,31 @@ def set_tokenizer_type(t_type):
     else:
         T_TYPE = t_type
     pass
+
+
+def get_db_ingredients(ocr_ings):
+    ''' Take a list of strings pulled from OCR and find their
+    matches in the ingredients database
+    '''
+    ret = []
+    prjctn = {
+        '_id': False,
+        'ingredient_name': True,
+        'score': {'$meta': 'textScore'}}
+    # Find db match for each string in input
+    for ing in ocr_ings:
+        query = INGREDIENTS_DB.read(
+            {'$text': {'$search': ing}},
+            projection=prjctn)
+
+        sorted_query = query.sort([('score', {'$meta': 'textScore'})])
+        if sorted_query.count() > 0:
+            found = sorted_query[0]['ingredient_name']
+            ret.append(found)
+            print("INPUT:", ing, "OUTPUT:", found)
+        else:
+            print("INPUT:", ing, "OUTPUT: NONE FOUND")
+    return ret
 
 
 # Tokenizer for ingredient lists
@@ -163,6 +188,8 @@ def get_ingredients_as_list(p_list_or_i):
         ing_prjctn = {'_id': False, 'ingredient_name': True}
         db_objects = INGREDIENTS_DB.read(ing_fltr, projection=ing_prjctn)
         return [DB_Object.build_from_dict(i).get('ingredient_name', '') for i in db_objects]
+    elif T_TYPE == 'OCR_list':
+        return get_db_ingredients(p_list_or_i)
     else:
         # Return the ingredient name
         ing_fltr = {'_id': p_list_or_i}
