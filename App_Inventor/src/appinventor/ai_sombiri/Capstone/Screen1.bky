@@ -642,16 +642,14 @@
       </block>
     </value>
   </block>
-  <block type="component_event" id="_Q8y}xlP#qcBbC0KHXQS" x="730" y="-590">
+  <block type="component_event" id="16H~;am30!9sU#]lX0s*" x="730" y="-590">
     <mutation component_type="Camera" instance_name="Camera1" event_name="AfterPicture"></mutation>
     <field name="COMPONENT_SELECTOR">Camera1</field>
     <statement name="DO">
-      <block type="component_set_get" id="ccF+6^$E^^:*Ui(T[;C0">
-        <mutation component_type="Image" set_or_get="set" property_name="Picture" is_generic="false" instance_name="Image1"></mutation>
-        <field name="COMPONENT_SELECTOR">Image1</field>
-        <field name="PROP">Picture</field>
+      <block type="lexical_variable_set" id="),;lQfd}W^_Q2@.TRuVP">
+        <field name="VAR">global imagePath</field>
         <value name="VALUE">
-          <block type="lexical_variable_get" id="{_hNQtC%y{MK;*2nDEC}">
+          <block type="lexical_variable_get" id="[`:Pf/VP:}|E_b1HNm0Y">
             <mutation>
               <eventparam name="image"></eventparam>
             </mutation>
@@ -659,38 +657,24 @@
           </block>
         </value>
         <next>
-          <block type="component_set_get" id="^q)wi:^V_Du?O2aAX3uH">
-            <mutation component_type="Image" set_or_get="set" property_name="Visible" is_generic="false" instance_name="Image1"></mutation>
-            <field name="COMPONENT_SELECTOR">Image1</field>
-            <field name="PROP">Visible</field>
+          <block type="component_set_get" id="D`;-91s}1RTirjVg_NR4">
+            <mutation component_type="Crop" set_or_get="set" property_name="Path" is_generic="false" instance_name="Crop1"></mutation>
+            <field name="COMPONENT_SELECTOR">Crop1</field>
+            <field name="PROP">Path</field>
             <value name="VALUE">
-              <block type="logic_boolean" id="quF_pu+X0.I!lFLd/TaQ">
-                <field name="BOOL">TRUE</field>
+              <block type="lexical_variable_get" id="[_{^zZ4O+xjJw~8Py/[.">
+                <field name="VAR">global imagePath</field>
               </block>
             </value>
             <next>
-              <block type="lexical_variable_set" id="K!*0^3xNkz7GWiN}G/xw">
-                <field name="VAR">global imagePath</field>
-                <value name="VALUE">
-                  <block type="lexical_variable_get" id="vj}o~_Fq6C8=|lzY1H;n">
-                    <mutation>
-                      <eventparam name="image"></eventparam>
-                    </mutation>
-                    <field name="VAR">image</field>
+              <block type="component_method" id="|@^3)=?nx#WC-3{0PwEG">
+                <mutation component_type="Crop" method_name="DoCrop" is_generic="false" instance_name="Crop1"></mutation>
+                <field name="COMPONENT_SELECTOR">Crop1</field>
+                <value name="ARG0">
+                  <block type="text" id="Ed=]-_o.4_4ZhqYQ8_?,">
+                    <field name="TEXT">image.jpg</field>
                   </block>
                 </value>
-                <next>
-                  <block type="component_set_get" id="@[.foKA~*a:v=Qfw+Q{.">
-                    <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="ocr_Label1"></mutation>
-                    <field name="COMPONENT_SELECTOR">ocr_Label1</field>
-                    <field name="PROP">Text</field>
-                    <value name="VALUE">
-                      <block type="lexical_variable_get" id="UV5H3xmH{g7B@BD2dhJ=">
-                        <field name="VAR">global imagePath</field>
-                      </block>
-                    </value>
-                  </block>
-                </next>
               </block>
             </next>
           </block>
@@ -705,6 +689,62 @@
         <field name="BOOL">FALSE</field>
       </block>
     </value>
+  </block>
+  <block type="component_event" id="?yKvf}4gP@+]`zO1`XJ8" x="1170" y="-590">
+    <mutation component_type="Crop" instance_name="Crop1" event_name="AfterCrop"></mutation>
+    <field name="COMPONENT_SELECTOR">Crop1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="/2b-KgnW_tu)Q0|#52vP">
+        <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="ocr_Label1"></mutation>
+        <field name="COMPONENT_SELECTOR">ocr_Label1</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="lexical_variable_get" id="5W97bv_z.()G5$rJ*)EM">
+            <mutation>
+              <eventparam name="path"></eventparam>
+            </mutation>
+            <field name="VAR">path</field>
+          </block>
+        </value>
+        <next>
+          <block type="lexical_variable_set" id="~h@pPDHt+0s..xZ]5r[W">
+            <field name="VAR">global imagePath</field>
+            <value name="VALUE">
+              <block type="lexical_variable_get" id="ofw;Dx4@3[NEz96FS%4M">
+                <mutation>
+                  <eventparam name="path"></eventparam>
+                </mutation>
+                <field name="VAR">path</field>
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="shTTbIFMfyp339c!d5}.">
+                <mutation component_type="Image" set_or_get="set" property_name="Picture" is_generic="false" instance_name="Image1"></mutation>
+                <field name="COMPONENT_SELECTOR">Image1</field>
+                <field name="PROP">Picture</field>
+                <value name="VALUE">
+                  <block type="lexical_variable_get" id="OgpbuV{@3Pr7a-0(O|^Z">
+                    <field name="VAR">global imagePath</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="4wauCm|7,5N_iVp`HSBf">
+                    <mutation component_type="Image" set_or_get="set" property_name="Visible" is_generic="false" instance_name="Image1"></mutation>
+                    <field name="COMPONENT_SELECTOR">Image1</field>
+                    <field name="PROP">Visible</field>
+                    <value name="VALUE">
+                      <block type="logic_boolean" id="D=qfzGAEKL^^OECJkDd8">
+                        <field name="BOOL">TRUE</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
   </block>
   <block type="global_declaration" id="x*n6G$3Pp75HK#Et/}?L" x="130" y="-510">
     <field name="NAME">user_prod_lst</field>
@@ -1830,11 +1870,12 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="`0kA{a+CC5k*Q8R~^6UY" x="-1970" y="950">
+  <block type="component_event" id="`0kA{a+CC5k*Q8R~^6UY" x="-1990" y="930">
     <mutation component_type="Web" instance_name="Web1" event_name="GotText"></mutation>
     <field name="COMPONENT_SELECTOR">Web1</field>
     <statement name="DO">
       <block type="controls_if" id="`eyR?wx!()UwgQ6NFOjL">
+        <mutation else="1"></mutation>
         <value name="IF0">
           <block type="logic_compare" id="|x11nGhIC;qL)d]SxJy#">
             <field name="OP">EQ</field>
@@ -1875,7 +1916,6 @@
             </value>
             <statement name="STACK">
               <block type="controls_if" id="OMUabRh1O#aBylIY1yEk">
-                <mutation else="1"></mutation>
                 <value name="IF0">
                   <block type="lists_lookup_in_pairs" id="2FRuJ_1*v?#CyhAe|J=r">
                     <value name="KEY">
@@ -1947,18 +1987,6 @@
                         </next>
                       </block>
                     </next>
-                  </block>
-                </statement>
-                <statement name="ELSE">
-                  <block type="component_set_get" id="*#(t`;4@Zu,8)i9;G`,?">
-                    <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="DEBUG_LBL"></mutation>
-                    <field name="COMPONENT_SELECTOR">DEBUG_LBL</field>
-                    <field name="PROP">Text</field>
-                    <value name="VALUE">
-                      <block type="text" id="C;:N$r?:1ZNtvklz^_q(">
-                        <field name="TEXT">Authentication failed</field>
-                      </block>
-                    </value>
                   </block>
                 </statement>
                 <next>
@@ -2513,6 +2541,63 @@
                     </next>
                   </block>
                 </next>
+              </block>
+            </statement>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="local_declaration_statement" id="wLnN|dK[17[Gn0$hpW#K">
+            <mutation>
+              <localname name="decodedJSON"></localname>
+            </mutation>
+            <field name="VAR0">decodedJSON</field>
+            <value name="DECL0">
+              <block type="component_method" id="4PEGM)%x}N9sth6}R4dG">
+                <mutation component_type="Web" method_name="JsonTextDecode" is_generic="false" instance_name="Web1"></mutation>
+                <field name="COMPONENT_SELECTOR">Web1</field>
+                <value name="ARG0">
+                  <block type="lexical_variable_get" id="cdX1Y5*U~~vCnZpE[lMy">
+                    <mutation>
+                      <eventparam name="responseContent"></eventparam>
+                    </mutation>
+                    <field name="VAR">responseContent</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="STACK">
+              <block type="controls_if" id="8a8$uKm)BRh7J`X.lZ1?">
+                <value name="IF0">
+                  <block type="lists_lookup_in_pairs" id="%9{)dN+l2@v-oa;Q$[Ns">
+                    <value name="KEY">
+                      <block type="text" id="}NxNlX[GVk3jf`~vUaX5">
+                        <field name="TEXT">authentication_failed</field>
+                      </block>
+                    </value>
+                    <value name="LIST">
+                      <block type="lexical_variable_get" id="ZR99b6YCrGyj{Hz+,v$2">
+                        <field name="VAR">decodedJSON</field>
+                      </block>
+                    </value>
+                    <value name="NOTFOUND">
+                      <block type="logic_false" id="xFdEm,LVF|SVow3}9]iO">
+                        <field name="BOOL">FALSE</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="component_set_get" id="l?G2ZE=fkvBDkaBvAZN6">
+                    <mutation component_type="Label" set_or_get="set" property_name="Text" is_generic="false" instance_name="DEBUG_LBL"></mutation>
+                    <field name="COMPONENT_SELECTOR">DEBUG_LBL</field>
+                    <field name="PROP">Text</field>
+                    <value name="VALUE">
+                      <block type="text" id="y2:zHpo-ZD@tOK|uIr15">
+                        <field name="TEXT">Authentication failed</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
               </block>
             </statement>
           </block>

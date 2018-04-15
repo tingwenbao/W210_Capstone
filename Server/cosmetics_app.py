@@ -217,9 +217,10 @@ class MyHandler(BaseHTTPRequestHandler):
             s.do_AUTHHEAD()
 
             response = {
-                'authenticated': False,
+                'authentication_failed': True,
                 'error': 'Invalid credentials'
             }
+            print('User Athentication attempt failed', json.dumps(response, cls=JSONEncoder))
 
             s.wfile.write(bytes(json.dumps(response), 'utf-8'))
 
