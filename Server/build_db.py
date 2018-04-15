@@ -179,7 +179,7 @@ def build_db(host, port, **kwargs):
     print("Creating search indexes")
     ingredients_db.createIndex(
         [('ingredient_name', TEXT), ('synonym_list', TEXT)],
-        weights={'ingredient_name': 4},
+        weights={'ingredient_name': 10},
         default_language='english')
     products_db.createIndex(
         [('product_name', TEXT)],

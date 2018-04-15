@@ -25,7 +25,7 @@ from model_ops import initialize_connections as model_ops_init
 from load_data_to_mongo import initialize_connections as stats_init
 import numpy as np
 
-from PIL import Image
+from PIL import Image, ImageFilter
 import PIL.ImageOps
 from pytesseract import image_to_string, image_to_boxes
 
@@ -47,8 +47,14 @@ CLF = None
 ING_VOCAB = None
 DICT_VECTORIZER = None
 
+
+def gaussian_blur(img, radius=2, size=3):
+    return img.filter(ImageFilter.GaussianBlur(radius=radius)).filter(ImageFilter.MedianFilter(size=size))
+
+
 def change_contrast(img, level):
     factor = (259 * (level + 255)) / (255 * (259 - level))
+
     def contrast(c):
         return 128 + factor * (c - 128)
     return img.point(contrast)
@@ -174,6 +180,25 @@ class MyHandler(BaseHTTPRequestHandler):
         sorted_query = query.sort([('score', {'$meta': 'textScore'})])
 
         return [DB_Object.build_from_dict(item) for item in sorted_query]
+
+    def get_prediction(s, item_list, demo_data):
+        # Ingredients info
+        X_itm_lst = item_list
+
+        # Demographic info
+        X_demo_lst = demo_data
+
+        # Vectorize data
+        d_vect = DICT_VECTORIZER
+        X_demo = d_vect.transform(X_demo_lst)  # X_demo is now a numpy array
+
+        tf_idf_vect = TFIDF_VECTORIZER
+        X_itm = tf_idf_vect.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
+
+        X = hstack([csr_matrix(X_demo), X_itm], format="csr")
+
+        prediction = CLF.predict(X)
+        return prediction
 
     def do_HEAD(s):
         s.send_response(200)
@@ -362,40 +387,21 @@ class MyHandler(BaseHTTPRequestHandler):
                 #print(len(body))
                 with open(s.upload_path, 'wb') as fh:
                     fh.write(body)
-                # open photo and convert to pure black and white
-                img = change_contrast(Image.open(s.upload_path),100)
+                # open photo and apply preprocessing:
+                # convert to pure black and white
+                # apply blur to reduce noise
+                img_final = light_background(
+                    change_contrast(
+                        gaussian_blur(Image.open(s.upload_path)), 100))
 
-                img_final = light_background(img)
                 img_final.save('modified.jpg')
                 i_result = image_to_string(img_final).split("\n")
                 print("[IMAGE RESULT]:", i_result)
 
-                # find the ingredient list part from result and extract it as a list of ingredients
-                start_index = 0
-                end_index = 0
-                for i in range (0,len(i_result)):
-                    if ("Ingredient" in i_result[i]) or ("INGREDIENT" in i_result[i]) or ("Ingrédients" in i_result[i]):
-                        start_index = i
-                        if i_result[i+1]=="":
-                            for j in range ((start_index+2),len(i_result)):
-                                if i_result[j]=="":
-                                    end_index = j
-                                    break
-                                else:
-                                    end_index = len(i_result)
-                        else:
-                            for j in range ((start_index+1),len(i_result)):
-                                if i_result[j]=="":
-                                    end_index = j
-                                    break
-                                else:
-                                    end_index = len(i_result)
-
-                r = i_result[start_index:end_index+1]
-                ingredient_list = ' '.join(r[1:]).split(',')
+                ingredient_list = re.split('[,.;:]', ' '.join(i_result))
 
                 print("[INGREDIENT LIST]:", ingredient_list)
-                print("[R]:", r)
+                #print("[R]:", r)
 
                 response = {
                     'ocr_acknowledge': True,
@@ -437,22 +443,9 @@ class MyHandler(BaseHTTPRequestHandler):
                 # Removed unused entries
                 del recv_data['search_type']
 
-                # Ingredients info
-                X_itm_lst = recv_data.pop('acne_products')
-
-                # Demographic info
-                X_demo_lst = [recv_data]
-
-                # Vectorize data
-                d_vect = DICT_VECTORIZER
-                X_demo = d_vect.transform(X_demo_lst)  # X_demo is now a numpy array
-
-                tf_idf_vect = TFIDF_VECTORIZER
-                X_itm = tf_idf_vect.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
-
-                X = hstack([csr_matrix(X_demo), X_itm], format="csr")
-
-                prediction = CLF.predict(X)
+                prediction = s.get_prediction(
+                    recv_data.pop('acne_products'),
+                    [recv_data])
 
                 response = {"acne_prediction": int(prediction)}
                 print('response', response)
