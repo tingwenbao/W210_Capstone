@@ -2700,6 +2700,33 @@
                                                 </value>
                                               </block>
                                             </value>
+                                            <next>
+                                              <block type="procedures_callnoreturn" id="Uou!p=tS!vDs6Mu,7_yk" inline="false">
+                                                <mutation name="setPredImg">
+                                                  <arg name="prediction_score"></arg>
+                                                </mutation>
+                                                <field name="PROCNAME">setPredImg</field>
+                                                <value name="ARG0">
+                                                  <block type="lists_lookup_in_pairs" id="KAT%0@^wX_Dy!3X)I2FU">
+                                                    <value name="KEY">
+                                                      <block type="text" id="S;l*t@nW2G2u2%4,C$+*">
+                                                        <field name="TEXT">acne_prediction</field>
+                                                      </block>
+                                                    </value>
+                                                    <value name="LIST">
+                                                      <block type="lexical_variable_get" id="sN#:1/f_l/w38~LbVp3A">
+                                                        <field name="VAR">decodedJSON</field>
+                                                      </block>
+                                                    </value>
+                                                    <value name="NOTFOUND">
+                                                      <block type="logic_false" id="Z+F!^AzCU;R)yC*.L[Rn">
+                                                        <field name="BOOL">FALSE</field>
+                                                      </block>
+                                                    </value>
+                                                  </block>
+                                                </value>
+                                              </block>
+                                            </next>
                                           </block>
                                         </statement>
                                       </block>
@@ -3959,6 +3986,99 @@
                 </next>
               </block>
             </statement>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="procedures_defnoreturn" id="|{Pe+|@DY^7-lxJR%}PR" x="-1050" y="2970">
+    <mutation>
+      <arg name="prediction_score"></arg>
+    </mutation>
+    <field name="NAME">setPredImg</field>
+    <field name="VAR0">prediction_score</field>
+    <statement name="STACK">
+      <block type="controls_if" id="|N5_]ETtAX:%%UzRyyZ0">
+        <mutation elseif="2"></mutation>
+        <value name="IF0">
+          <block type="logic_compare" id="PK:wM3Ie{~SkPRX_sI.z">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="lexical_variable_get" id=":QDtthU%Li6h?s(BpuO,">
+                <field name="VAR">prediction_score</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="`MZf=nbruWd#1OZT;LIn">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="component_set_get" id="dwlNmB-REdc-kV6d|?7Z">
+            <mutation component_type="Image" set_or_get="set" property_name="Picture" is_generic="false" instance_name="predict_img"></mutation>
+            <field name="COMPONENT_SELECTOR">predict_img</field>
+            <field name="PROP">Picture</field>
+            <value name="VALUE">
+              <block type="text" id="(HSk[-%)yHyAzYNSW/Z)">
+                <field name="TEXT">predict_low.png</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <value name="IF1">
+          <block type="logic_compare" id="ig^{.n_|-_KO0b1o1w3-">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="lexical_variable_get" id="5w|{eS;-kH/z54Hdbggy">
+                <field name="VAR">prediction_score</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="!Fr[,.i2S-dR@dSpiJ-M">
+                <field name="NUM">1</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO1">
+          <block type="component_set_get" id="0IbCY0GnzGEaVGo6NcwF">
+            <mutation component_type="Image" set_or_get="set" property_name="Picture" is_generic="false" instance_name="predict_img"></mutation>
+            <field name="COMPONENT_SELECTOR">predict_img</field>
+            <field name="PROP">Picture</field>
+            <value name="VALUE">
+              <block type="text" id="3]^v({{JdY*h^La#oXa+">
+                <field name="TEXT">predict_med.png</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <value name="IF2">
+          <block type="logic_compare" id="5,8ST!8(YS~WLj;u57+n">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="lexical_variable_get" id=",0Cg~LwxGwrDa13-f586">
+                <field name="VAR">prediction_score</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="PzCnJHoNh:E_VD|jPa_?">
+                <field name="NUM">2</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO2">
+          <block type="component_set_get" id="8QNv}k!3UbKy;DcND,8f">
+            <mutation component_type="Image" set_or_get="set" property_name="Picture" is_generic="false" instance_name="predict_img"></mutation>
+            <field name="COMPONENT_SELECTOR">predict_img</field>
+            <field name="PROP">Picture</field>
+            <value name="VALUE">
+              <block type="text" id="tpRVhOnTNCEysYh(Gw3`">
+                <field name="TEXT">predict_high.png</field>
+              </block>
+            </value>
           </block>
         </statement>
       </block>
