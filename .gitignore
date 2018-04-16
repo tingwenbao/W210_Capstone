@@ -1,6 +1,6 @@
 
 *.json
-*.jpg
+Server/*.jpg
 *.pyc
 *.pickle
 mm_test_result.png

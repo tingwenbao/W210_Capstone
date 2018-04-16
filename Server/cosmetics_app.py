@@ -10,28 +10,21 @@ from urllib.parse import unquote_plus
 import cgi
 import re
 import json
-import pandas as pd
 import argparse
 from load_data_to_mongo import display_db_stats
 from pickle import load as pload
 from db_crud import DB_CRUD
 from db_object import DB_Object, JSONEncoder
 from bson.objectid import ObjectId
-from model_ops import (
-    get_ingredient_vocabulary,
-    get_ingredients_as_list,
-    set_tokenizer_type)
+from model_ops import set_tokenizer_type
 from model_ops import initialize_connections as model_ops_init
 from load_data_to_mongo import initialize_connections as stats_init
-import numpy as np
 
-from PIL import Image
+from PIL import Image, ImageFilter
 import PIL.ImageOps
-from pytesseract import image_to_string, image_to_boxes
+from pytesseract import image_to_string
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction import DictVectorizer
-from scipy.sparse import csr_matrix, hstack, vstack
+from scipy.sparse import csr_matrix, hstack
 
 SV_HOST_NAME = 'ec2-35-172-36-92.compute-1.amazonaws.com'
 SV_PORT_NUMBER = 9000
@@ -46,9 +39,16 @@ COMODEGENIC_DB = None
 CLF = None
 ING_VOCAB = None
 DICT_VECTORIZER = None
+INGREDIENT_LIST = []
+
+
+def gaussian_blur(img, radius=2, size=3):
+    return img.filter(ImageFilter.GaussianBlur(radius=radius)).filter(ImageFilter.MedianFilter(size=size))
+
 
 def change_contrast(img, level):
     factor = (259 * (level + 255)) / (255 * (259 - level))
+
     def contrast(c):
         return 128 + factor * (c - 128)
     return img.point(contrast)
@@ -141,8 +141,8 @@ class MyHandler(BaseHTTPRequestHandler):
         return [{"product_id": str(item['_id']), "product_name": item['product_name']}
                 for item in sorted_query]
 
-    def get_score(s, search_str, col='ingredient'):
-        """ Check DB to see if username is avaialble"""
+    def get_suggestions(s, search_str, col='ingredient'):
+        ''' Check DB to see if username is avaialble'''
 
         if not search_str:
             return []
@@ -174,6 +174,26 @@ class MyHandler(BaseHTTPRequestHandler):
         sorted_query = query.sort([('score', {'$meta': 'textScore'})])
 
         return [DB_Object.build_from_dict(item) for item in sorted_query]
+
+    def get_prediction(s, item_list, demo_data):
+        print('INPUT', item_list, demo_data)
+        # Ingredients info
+        X_itm_lst = item_list
+
+        # Demographic info
+        X_demo_lst = demo_data
+
+        # Vectorize data
+        d_vect = DICT_VECTORIZER
+        X_demo = d_vect.transform(X_demo_lst)  # X_demo is now a numpy array
+
+        tf_idf_vect = TFIDF_VECTORIZER
+        X_itm = tf_idf_vect.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
+
+        X = hstack([csr_matrix(X_demo), X_itm], format="csr")
+
+        prediction = CLF.predict(X)
+        return prediction
 
     def do_HEAD(s):
         s.send_response(200)
@@ -318,7 +338,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 print('[SEARCH TERM]', search_str)
                 print('[SEARCH TYPE]', search_typ)
 
-                results = s.get_score(search_str, search_typ)
+                results = s.get_suggestions(search_str, search_typ)
 
                 if results:
                     response = {
@@ -362,44 +382,26 @@ class MyHandler(BaseHTTPRequestHandler):
                 #print(len(body))
                 with open(s.upload_path, 'wb') as fh:
                     fh.write(body)
-                # open photo and convert to pure black and white
-                img = change_contrast(Image.open(s.upload_path),100)
+                # open photo and apply preprocessing:
+                # convert to pure black and white
+                # apply blur to reduce noise
+                img_final = light_background(
+                    change_contrast(
+                        gaussian_blur(Image.open(s.upload_path)), 100))
 
-                img_final = light_background(img)
                 img_final.save('modified.jpg')
                 i_result = image_to_string(img_final).split("\n")
                 print("[IMAGE RESULT]:", i_result)
 
-                # find the ingredient list part from result and extract it as a list of ingredients
-                start_index = 0
-                end_index = 0
-                for i in range (0,len(i_result)):
-                    if ("Ingredient" in i_result[i]) or ("INGREDIENT" in i_result[i]) or ("Ingrédients" in i_result[i]):
-                        start_index = i
-                        if i_result[i+1]=="":
-                            for j in range ((start_index+2),len(i_result)):
-                                if i_result[j]=="":
-                                    end_index = j
-                                    break
-                                else:
-                                    end_index = len(i_result)
-                        else:
-                            for j in range ((start_index+1),len(i_result)):
-                                if i_result[j]=="":
-                                    end_index = j
-                                    break
-                                else:
-                                    end_index = len(i_result)
+                global INGREDIENT_LIST
+                # Store the OCR image list until user sends demographic info
+                INGREDIENT_LIST = re.split('[,.;:]', ' '.join(i_result))
 
-                r = i_result[start_index:end_index+1]
-                ingredient_list = ' '.join(r[1:]).split(',')
-
-                print("[INGREDIENT LIST]:", ingredient_list)
-                print("[R]:", r)
+                print("[INGREDIENT LIST]:", INGREDIENT_LIST)
 
                 response = {
                     'ocr_acknowledge': True,
-                    'ingredients': ingredient_list
+                    'ingredients': INGREDIENT_LIST
                 }
 
                 s.wfile.write(bytes(json.dumps(response), 'utf-8'))
@@ -413,16 +415,16 @@ class MyHandler(BaseHTTPRequestHandler):
                     headers=s.headers,
                     environ={'REQUEST_METHOD': 'POST'}
                 )
-                recv_data = {
+                i_id = form.getvalue("user_item_id")
+                search_type = form.getvalue("search_type")
+                demo_data = {
                     'race': form.getvalue("user_race"),
                     'birth_sex': form.getvalue("user_birth_sex"),
                     'age': int(form.getvalue("user_age")),
                     'skin': form.getvalue("user_skin"),
-                    'acne': form.getvalue("user_acne"),
-                    'acne_products': [ObjectId(form.getvalue("user_item_id"))],
-                    'search_type': form.getvalue("search_type")}
+                    'acne': form.getvalue("user_acne")}
 
-                if recv_data.get('search_type', '') == 'product':
+                if search_type == 'product':
                     # Search type is product
                     # For products, get ingredients
                     #tokenizer = get_ingredients_as_list
@@ -434,25 +436,15 @@ class MyHandler(BaseHTTPRequestHandler):
                     #tokenizer = s.ingredient_id_tokenizer
                     set_tokenizer_type('ingredient')
 
-                # Removed unused entries
-                del recv_data['search_type']
-
-                # Ingredients info
-                X_itm_lst = recv_data.pop('acne_products')
-
-                # Demographic info
-                X_demo_lst = [recv_data]
-
-                # Vectorize data
-                d_vect = DICT_VECTORIZER
-                X_demo = d_vect.transform(X_demo_lst)  # X_demo is now a numpy array
-
-                tf_idf_vect = TFIDF_VECTORIZER
-                X_itm = tf_idf_vect.transform(X_itm_lst)  # X_itm is now a CSR sparse matrix
-
-                X = hstack([csr_matrix(X_demo), X_itm], format="csr")
-
-                prediction = CLF.predict(X)
+                if i_id == 'ocr_predict':
+                    set_tokenizer_type('OCR_list')
+                    prediction = s.get_prediction(
+                        [INGREDIENT_LIST],
+                        [demo_data])
+                else:
+                    prediction = s.get_prediction(
+                        [ObjectId(i_id)],
+                        [demo_data])
 
                 response = {"acne_prediction": int(prediction)}
                 print('response', response)
