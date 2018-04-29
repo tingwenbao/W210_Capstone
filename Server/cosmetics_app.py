@@ -422,7 +422,7 @@ class MyHandler(BaseHTTPRequestHandler):
                     'birth_sex': form.getvalue("user_birth_sex"),
                     'age': int(form.getvalue("user_age")),
                     'skin': form.getvalue("user_skin"),
-                    'acne': form.getvalue("user_acne")}
+                    'acne': bool(form.getvalue("user_acne"))}
 
                 if search_type == 'product':
                     # Search type is product
