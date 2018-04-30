@@ -1,0 +1,616 @@
+<!doctype html>
+<html class="no-js" lang="zxx">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="author" content="Ashton Chevallier">
+    <meta name="description" content="">
+    <meta name="keywords" content="Technical Details for UC Berkeley MIDS Capstone">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title -->
+    <title>Skin.AI | Technical Details Page</title>
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="apple-touch-icon" href="images/2.png">
+    <link rel="shortcut icon" type="image/ico" href="images/2.png" />
+    <!-- Plugin-CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/linearicons.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/animate.css">
+    <!-- Main-Stylesheets -->
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="single-post" data-spy="scroll" data-target=".mainmenu-area">
+    <!-- Preloader-content -->
+    <div class="preloader">
+        <span><i class="lnr lnr-sun"></i></span>
+    </div>
+    <!-- MainMenu-Area -->
+    <nav class="mainmenu-area" data-spy="affix" data-offset-top="200">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#primary_menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#"><img src="images/2.png" alt="Logo"></a>
+            </div>
+            <div class="collapse navbar-collapse" id="primary_menu">
+                <ul class="nav navbar-nav mainmenu">
+                    <li class="active"><a href="index.html#home_page">Home</a></li>
+                    <li><a href="#business">Business Case</a></li>
+                    <li><a href="#Product">Product Design</a></li>
+                    <li><a href="#ML">Machine Learning</a></li>
+                    <li><a href="#System">System Design</a></li>
+                    <li><a href="#OCR">OCR</a></li>
+                    <li><a href="#Future">Future Work</a></li>
+                    <!-- <li><a href="index.html#contact_page">Contacts</a></li> -->
+                </ul>
+                <div class="right-button hidden-xs">
+                    <a href="#">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- MainMenu-Area-End -->
+
+    <header class="site-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 text-center">
+                    <h1 class="white-color">Technical Details</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="index.html">Home</a></li>
+                        <li>Everything you wanted to know about Skin.Ai!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <article class="post-single" id = 'business'>
+                        <figure class="post-media">
+                            <img src="images/shopping.png" alt="">
+                        </figure>
+                        <div class="post-body">
+                            <ul class="breadcrumb">
+                                <li><a href="#">Business</a></li>
+                                <li>Ashton Chevallier</li>
+                            </ul>
+                            <h2 class="dark-color">Business Case</h2>
+                            <div class="space-20"></div>
+                            <h4> We've all been there. Walk into a CVS and you’ll find over 200 different face products with terms like ‘acne’,  ‘blackhead fighting’ or ‘pore cleansing’ on them. Furthermore, many also claim to have various other effects like “anti-aging”, “smoothing”, “whitening”. Does it ever make you wonder whether it actually does what it claims to do when you see so many “magical” promises lined up together?</h4>
+                            <div class="space-30"></div>
+                            <p> The $4.9 Billion acne treating market is built on a flimsy understanding of acne cosmetica (simply, acne caused by cosmetics). More often than not, the individual consumer must treat themself as a subject in their own science experiement or rely on the wisdom of Reddit or worse, the internet at large. </p>
+                            <blockquote>“Cosmetics are innocent until proven guilty. Their ingredients don’t have to be proven safe, or effective. Even if a particular ingredient has some evidence behind it, cosmetic manufacturers aren’t required to prove that the ingredient works in that product’s specific formulation, or at that particular concentration. Often, the only way to figure out if something works is to try it...(1)”</blockquote>
+                            <div class="space-20"></div>
+                            <p>The line between a cosmetic and a drug is razor thin. The FDA defines</p>
+                            <p>  Cosmetics: "Articles intended to be rubbed, poured, sprinkled, or sprayed on, introduced into, or otherwise applied to the human body ... for cleansing, beautifying, promoting attractiveness, or altering the appearance." </p>
+                            <p>  Drugs: "Articles intended for use in the diagnosis, cure, mitigation, treatment, or prevention of disease. ... [And] articles (other than food) intended to affect the structure or any function of the body of man or other animals." </p>
+                            <p>This ill defined boundary makes any reasonable amount of science almost impossible. Companies can label their product as a cosmetic, even though it's actually treating a 'disease'. Furthermore, because cosmetics are labeled as such, getting grants for research is even harder and more expensive. </p>
+                            <div class="space-50"></div>
+                            <blockquote>“My background is in medicinal chemistry, so I’m used to saying if [a study] is under 100 subjects, then it’s not worth looking at,” Wong says. “But in skin care, if it has more than 10 subjects, it’s amazing, because there’s just not funding. Because it’s not regulated as drugs.(1)”</blockquote>
+                            <div class="space-50"></div>
+                            <p>Further complicating all of this: acne is a really hard problem to solve. Your genes, your age, your habits, your diet and skin care routine all play a huge part of the process. Isolating even one facet of the equation can be incredibly difficult. </p>
+                            <figure class="post-media">
+                                <img src="images/acne_cause.jpg" alt="">
+                             </figure>
+                            <p>Consumers need a way to reliably get information on their cosmetics and make the most of the science experiment they are running on themselves. If you think about every single person using a skin care product as a small experiment, imagine the power and knowledge one could get if we aggregated and analyzed that data. This is the core idea behind Skin.Ai: provide a platform for people to log their 'experiments' with skin care and give them in return, the best knowledge available on whether that product will work.</p>
+                            <div class='space-30'></div>
+                            <a href = 'https://www.theatlantic.com/health/archive/2018/03/the-citizen-science-of-skin-care/555125/'>(1) The Atlantic Monthly; </a>
+                            <a href = 'https://i.pinimg.com/originals/87/9d/4f/879d4fb7a25c99e1c89d009c66b67057.jpg'>(2) OhSimply.com</a>
+
+                        </div>
+                    </article>
+                    <div class="space-100"></div>
+                    <!-- <div id="comments" class="comments-area">
+                        <h3 class="comment-heading">2 Comments</h3>
+                        <ul class="comments-list">
+                            <li>
+                                <article class="comment">
+                                    <figure class="comment-pic">
+                                        <img alt="" src="images/comment-image.jpeg">
+                                    </figure>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <h4>Ashekur Rahman</h4>
+                                            <p class="comment-date">Posted on September 3, 2012 at 10:18 am </p>
+                                        </div>
+                                        <p>Do sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veni est, qui d tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                                        <ul class="breadcrumb">
+                                            <li><a href="#">Reply</a></li>
+                                            <li><a href="#">Share</a></li>
+                                        </ul>
+                                    </div>
+                                </article>
+                                <ul>
+                                    <li>
+                                        <article class="comment">
+                                            <figure class="comment-pic">
+                                                <img alt="" src="images/comment-image.jpeg">
+                                            </figure>
+                                            <div class="comment-content">
+                                                <div class="comment-header">
+                                                    <h4>Ashekur Rahman</h4>
+                                                    <p class="comment-date">Posted on September 3, 2012 at 10:18 am </p>
+                                                </div>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eos pariatur fuga ullam placeat corrupti inventore.</p>
+                                                <ul class="breadcrumb">
+                                                    <li><a href="#">Reply</a></li>
+                                                    <li><a href="#">Share</a></li>
+                                                </ul>
+                                            </div>
+                                        </article>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <article class="comment">
+                                    <figure class="comment-pic">
+                                        <img alt="" src="images/comment-image.jpeg">
+                                    </figure>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <h4>Ashekur Rahman</h4>
+                                            <p class="comment-date">Posted on September 3, 2012 at 10:18 am </p>
+                                        </div>
+                                        <p>Do sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veni est, qui d tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                                        <ul class="breadcrumb">
+                                            <li><a href="#">Reply</a></li>
+                                            <li><a href="#">Share</a></li>
+                                        </ul>
+                                    </div>
+                                </article>
+                            </li>
+                        </ul>
+                        <div class="comment-respond">
+                            <h4>Post your comments</h4>
+                            <form action="#" class="comment-form">
+                                <div class="form-double">
+                                    <div class="box">
+                                        <input type="text" class="form-control" placeholder="your Name">
+                                        <div class="space-30"></div>
+                                    </div>
+                                    <div class="box last">
+                                        <input type="email" class="form-control" placeholder="Your Email">
+                                        <div class="space-30"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="form-control" placeholder="Website URL">
+                                <div class="space-30"></div>
+                                <textarea name="comment" id="comment" rows="5" class="form-control" placeholder="Type Your Mesage..."></textarea>
+                                <div class="space-30"></div>
+                                <button type="submit" class="bttn-default">Post Comments</button>
+                            </form>
+                        </div> -->
+                    </div>
+                </div>
+                
+                    <div class="space-100"></div>
+                    <article class="post-single" id ='Product'>
+                        <figure class="post-media">
+                            <img src="images/progress-bg.jpg" alt="">
+                        </figure>
+                        <div class="post-body">
+                            <ul class="breadcrumb">
+                                <li><a href="#">Product</a></li>
+                                <li>Tingwen Bao</li>
+                            </ul>
+                            <h2 class="dark-color">Product Design</h2>
+                            <div class="space-20"></div>
+                            <h4>Stand out from competition with convenience and scalability.</h4>
+                            <div class="space-30"></div>
+                            <p>There are a handful of product scanning apps available on the market, but most of them have very little market penetration, limited features and no artificial intelligence. The closest competitor would be 'Think Dirty': an app that allows you to scan bar codes and get various potential hazard scores. The most common complaints of the tool are that most items scanned don't turn up, causing many customer to abandon the product.</p>
+                            <figure class="post-media">
+                                <img src="images/think_dirty.png" alt="">
+                                <p>Think Dirty Application Flow</p>
+                             </figure>
+                            <p>To avoid potential customer loss and maximize convenience, customers should be able to use it anytime, anywhere on any kind of cosmetic products without much time and manual process needed. And to be scalable, our product should be able to quick and easily adapt to new products and product categories.</p>
+
+                            <p>To fulfill this, some of the key features we choose are : 1) a phone app instead of website, 2) user take a picture of ingredient list on the package and the app use OCR to read the text instead of scanning barcode and rely on an internal database of products</p>
+                            
+                        </div>
+                    </article>
+                    <div class="space-100"></div>
+                    <article class="post-single" id = 'ML'>
+                        <figure class="post-media">
+                            <img src="images/ml.jpg" alt="">
+                        </figure>
+                        <div class="post-body">
+                            <ul class="breadcrumb">
+                                <li><a href="#">Machine Learning</a></li>
+                                <li>Ashton Chevallier</li>
+                            </ul>
+                            <h2 class="dark-color">Core Machine Learning</h2>
+                            <div class="space-20"></div>
+                            <h4>At the core, our model takes user demographic data and product ingredients, and returns an acne propensity score.</h4>
+                            <div class="space-30"></div>
+                            <p>Getting to that score is a little complicated. We first built a DB of ingredients and products based on the public data available at EWG.org. Our Systems Engineering section below has more details on this subject. </p>
+
+                            <p>Our first attempt at solving this problem was actually to create a semantic ingredient vector space and define a distance function that told how similar 2 products were to each other. The core idea that if there were relationships between different products and their acne potential, we could exploit that to predict whether a particular product would cause acne based on its distance to a known bad product. We implemented this idea using a Word2Vec model on the ingredient space and a tSNE clustering to visualize the potential relationships.</p>
+                            <figure class="post-media">
+                                <img src="images/tsne.png" alt="">
+                                <p>Word2Vec Visualized with tSNE</p>
+                             </figure>
+                            <div class="space-20"></div>
+                            <p>As you can see from the figure, the relationships between different types of products and their ingredients was tenuous at best. The problem we found is that distance in this semantic relationship really isn't useful at all. For instance, water would always be in the presence of salt/sodium, but water will never cause acne...but salt could. We needed a new approach.</p>
+                            <div class="space-50"></div>
+                            <blockquote>“By treating acne propensity more like a spam filter problem, we could get more meaningful results.” - Ashton Chevallier</blockquote>
+                            <div class="space-50"></div>
+                            <p>A simple spam filter works by treating each word in an email like a feature. You label each email as spam or ham, and you can use basic machine learning techniques to predict whether the email was good or bad. If we could develop a simple way to label a particular product as good or bad, we could use the demographics of the person using that product and it's ingredient list as predictors. Ideally, we'd gather tons of data from acne suffers and the products causing them problems and use that as a dataset to develop our model. </p>
+                            <p>Our initial research phase included a survey sent out to friends and family to see if this was possible. The results were poor. Most responses failed to include specific products that cause problems and when they did, the products were simply labeled as 'Proactiv' instead of the specific product and sku used. Given the limited time and resources of the project, our only choice was to logically generate user and product data.</p>
+                            <p>We found that multiple websites had listed a series of ingredients as potentially comodegenic (pore clogging). In general it would be a good idea to avoid these ingredients and it gave us a way to label our products. The comodegenic ingredients we used were based on research from skinSalvationSf.com, which in turn was based of the research from Dr. James Fulton and Mark Lees. The data was labeled from 1-5 (1 being safe, 5 being maximum cloggy). We matched the listed ingredients to the master list of synonyms available at EWG.org. Once matched, we could score each of the 70k+ products as a bucket sum of the comedegenic scores. </p>
+                            <figure class="post-media">
+                                <img src="images/comedegenic.png" alt="">
+                                <p>Developing Product Labels</p>
+                             </figure>
+                             <p>The next step was to generate a series of users. By taking the demographic layout of the US and the relative acne propensity of Americans by age, we could create a sample of Americans and assign products to each user. To account for the fact that teenagers with oily skin are more likely to get acne than adults with normal skin, we developed a score multiplier based on acne distribution by age (citation needed).                             
+                             </p>
+                             <figure class="post-media">
+                                <img src="images/generate_users.png" alt="">
+                                <p>Generating User DB</p>
+                             </figure>
+                             <p>By combining the generated users with our weighted labeled product data, we finally have the features and lables required for machine learning. 
+                             </p>
+                             <figure class="post-media">
+                                <img src="images/labled_data.png" alt="">
+                                <p>Generating User DB</p>
+                             </figure>
+                             <p>After doing a standard grid search for tuning paramters the best results are shown below.</p>
+                             <figure class="post-media">
+                                <img src="images/classifier_output.png" alt="">
+                                <p>Grid Seach Results of 4 Classifiers</p>
+                             </figure>
+                             <p>We ultimately ended up chosing the Random Forest classifier for it's accuracy, low false negative rate and the ability to rank ingredients based on their variable importance. If the classifier labels a product a medium, but in reality it's a low, no big deal. But if a product is really a high, and it's labeled a low, that could really cause a user some uneeded pain. Additionally, the variable importance score allows us to discover new potentially comedegenic ingredients and verify our model.
+                             </p>
+                             <p>Without the ability to gather and collect real user data, it's very hard to confirm exactly how accurate our model is. Worst case scenario, our product delivers an easy way to check for the acne potential of a cosmetic product and saves them the trouble of looking up the ingredients themselves. Best case scenario, if our user base grows to a large number, we'll be able to capture enough real datapoints to begin discovering new problem ingredients and products.
+                        </div>
+                    </article>
+                    <div class="space-100"></div>
+                    <article class="post-single" id = 'System'>
+                        <figure class="post-media">
+                            <img src="images/system_logo.png" alt="">
+                        </figure>
+                        <div class="post-body">
+                            <ul class="breadcrumb">
+                                <li><a href="#">System Design</a></li>
+                                <li>Sombiri Enwemeka</li>
+                            </ul>
+                            <h2 class="dark-color">System Design</h2>
+                            <div class="space-20"></div>
+                            <h3>Architecture</h3>
+                            <div class="space-30"></div>
+                            <p>In order to serve our users with accurate acne predictions as quickly as tech savvy mobile device users expect we needed an efficient data architecture and processing pipeline. This section describes the individual pieces of the system and how they interact to form the backbone of the application. The flow of data through the pipeline is logical: lengthy tasks such as data ingestion or model testing performed automatically and asynchronously with time sensitive tasks like serving up application data. </p>
+                            <figure class="post-media">
+                                <img src="images/Architecture.png" alt="">
+                                <p>Structure of our Application</p>
+                             </figure>
+
+                            <h3>Collecting Data</h3>
+                            <div class="space-30"></div>
+                            <p>One of the first major steps in building our machine learning platform was finding and collecting data to use for our solution. To predict which cosmetics products might cause acne we needed to acquire a large amount of cosmetics and ingredient data. In order to accomplish this goal we used web scrapers to ethically collect cosmetics data from a number of websites. Our scrapers ran using multiple compute instances and were coded to respect each site’s robots.txt file, which governs where automated systems have access. Using distributed computing for the scrapers reduced total scraping time as well as the amount of information any one scraper needed to collect which helped provide a rate limit to avoid overwhelming any site’s servers. With these efforts we collected data on over 70,000 products and nearly 9000 ingredients. </p>
+                            <figure class="post-media">
+                                <img src="images/scraper.png" alt="">
+                                <p>Scraper Setup</p>
+                             </figure>
+
+                             
+                            <h3>Cleaning and Storing</h3>
+                            <div class="space-30"></div>
+                            <p>Our new dataset contained tons of useable information about each product and ingredient such as names, synonyms, and comedogenic degree but to be truly useful in a production application we needed to do some data cleaning. First, our scraper outputs where simple, flat, JSON text files. This was acceptable for performing exploratory analysis and developing our machine learning models but to have a robust and scalable web platform we created a database to house each type of data item. Specifically, we used MongoDB, a noSQL document-oriented database program. MongoDB is flexible in terms of how data is stored and queried yet just as fast and reliable as old-school relational databases. Using a database allows us to have significantly faster access times, run complex queries without needing to write additional code, and simply start more server or database instances in order to scale. </p>
+                            <p>Next, we assured that each data entry was consistent. MongoDB can easily handle missing keys, however, the overhead of performing a check for each query would hamper our performance at scale. We ensured that each item contained both valid data and the same fields for each entry. The data is stored in 4 collections (tables in a traditional database):</p>                             
+                            <h4>Comedogenic – Stores acne propensity information and notes for each ingredient  </h4>
+                                <ul>
+                                <li>This database is used during the build process to merge information into the ingredients and products databases
+                                </li>
+                                </ul>
+                            <h4>Ingredients – Stores chemical ingredient information including a synonym list for each ingredient </h4>
+                                <ul>
+                                    <li>During data cleaning synonym lists are used to match ingredients to their comedogenic scores </li>
+                                    <li>The synonym list is also used to improve search results for the user
+                                    </li>
+                                </ul>
+                            <h4>Products – Stores information of over 70,000 cosmetics products</h4>
+                            <ul>
+                                <li>Each product includes an ingredient list, which links each ingredient back to the ingredients database using a many-to-one relationship</li>
+                            </ul>
+                            <h4>People – Contains user information</h4>
+                            <ul>
+                                <li>Each user can have any number of added products associated with them </li>
+                                <li>These products link back to the products database using a many-to-one relationship</li>
+
+                            </ul>
+
+                            <p>The database also contains a file store which houses revision-controlled copies of our model. New server instances can simply point to a database instance and acquire all the data needed to serve users without any human intervention.<br/>Last, we wrote a python library to handle our software to database interface using Create, Read, Update, Delete operations (CRUD). This allowed any software we wrote to have a common interface when accessing the database, very useful for streamlining the process.
+                            </p>
+                            <figure class="post-media">
+                                <img src="images/cleaning.png" alt="">
+                                <p>Cleaning Pipeline</p>
+                             </figure>
+
+                            <h3>Automating Our Processes</h3>
+                             <p>Building upon the aforementioned codebase, we wrote a loader script to handle all aspects of running our data ecosystem. This script automates the process of ingesting and cleaning scraped cosmetics data, updating user information, and kicking off the build, training, and performance testing of our machine learning models. During the database build process, the script builds indexes for entries in each database collection to provide lightning fast searches when the server is running. In our production system, this script handles continually updating our models and improving our user’s results over time.<p>
+                            <figure class="post-media">
+                                <img src="images/Data_Pipeline.png" alt="">
+                                <p>Data Pipeline</p>
+                             </figure>
+                            <h3>Serving it All Up</h3>
+                            <p>The last step of the data pipeline is serving the user with results.  Our backend is a python server capable of running on any cloud service provider’s compute instance. The server handles user authentication, takes and processes user requests, queries the database, and serves the results back to the user. When a user performs an action that requires external data a request is sent to the server. For example, when viewing product predictions the user’s search term is sent to the server which constructs a database query and returns a list of matching products sorted by relevance for the user to choose. When the user makes a selection, a 2nd request, this time with the user’s demographic information, kicks off the prediction step and returns the personalized acne score. The entire process only takes a few milliseconds thanks to the efficient construction of our data pipeline and architecture.<p>
+                           
+                        </div>
+                    </article>
+                    <article class="post-single" id = 'OCR'>
+                        <figure class="post-media">
+                            <img src="images/ocr.jpg" alt="">
+                        </figure>
+                        <div class="post-body">
+                            <ul class="breadcrumb">
+                                <li><a href="#">OCR</a></li>
+                                <li>Tingwen Bao</li>
+                            </ul>
+                            <h2 class="dark-color">Optical Character Recognition (OCR)</h2>
+                            <div class="space-20"></div>
+                            <h4>Optical character recognition (OCR) is the mechanical or electronic conversion of images of typed, handwritten or printed text into machine-encoded text.</h4>
+                            <div class="space-30"></div>
+                            <p>Our product currently uses tesseract-ocr to extract ingredient list from photos. </p>
+
+                            <p>Challenges:
+                            Best performance on flat surface with white background and dark text. It could not recognize text from reverse background or colorful background
+                            Poor performance on curved surface when text are twisted on photo</p>
+
+                            <figure class="post-media">
+                                <img src="images/ocr_1.png" alt="">
+                                <p>Converting Images</p>
+                             </figure>
+                            <div class="space-20"></div>
+
+                            <p>Improvements Implemented:
+                                Increase contrast of the photo. It resolves the issue when photo has shadow or blurry
+                                Convert photo to black and white. It reduce the problem of color background.
+                            </p>
+
+                            <figure class="post-media">
+                                <img src="images/ocr_2.png" alt="">
+                                <p>Flat Surface Results</p>
+                             </figure>
+                            <div class="space-20"></div>
+
+                            <figure class="post-media">
+                                <img src="images/ocr_3.png" alt="">
+                                <p>Curved Surface Results</p>
+                             </figure>
+                            <div class="space-20"></div>
+                            <p>Future Improvement: 
+                                Make it able to read various curved surface
+                                Improve accuracy on color background</p>
+                        </div>
+                    </article>
+                    <div class="space-100"></div>
+                    <article class="post-single" id ='Future'>
+                        <figure class="post-media">
+                            <img src="images/future.jpg" alt="">
+                        </figure>
+                        <div class="post-body">
+                            <ul class="breadcrumb">
+                                <li><a href="#">Future</a></li>
+                                <li>Ashton Chevallier</li>
+                            </ul>
+                            <h2 class="dark-color">Future Plans</h2>
+                            <div class="space-20"></div>
+                            <h4>Expansion...Monetization</h4>
+                            <div class="space-30"></div>
+                            <p>Our first plans are to get a stable rebuild and finish user testing. Although, the applications works fine as is, there are still improvements needed to be made in the UX and features. Plus we'd want to make sure that real people would want to use this tool. Improving our OCR and finalizing barcode scanning are both keys here.</p>
+                            <p>Monetization of the product is fairly easily realized (but a lot of work to implement) by allowing advertisers to display an ad/deal if a similar product to the one they want to sell is scanned.</p>
+                            <p>The UX and features are important, because it's the key to getting a large user base and in turn, access to actual user data. At worst case, our tool is a conveient way to get solid information on the clogging ability of your cosmetic ingredients...at best case, it's the gateway to discovering new interactions and acne causing ingredients to a level that the world has never seen.</p>
+
+                            
+                        </div>
+                    </article>
+                    <!-- <div id="comments" class="comments-area">
+                        <h3 class="comment-heading">2 Comments</h3>
+                        <ul class="comments-list">
+                            <li>
+                                <article class="comment">
+                                    <figure class="comment-pic">
+                                        <img alt="" src="images/comment-image.jpeg">
+                                    </figure>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <h4>Ashekur Rahman</h4>
+                                            <p class="comment-date">Posted on September 3, 2012 at 10:18 am </p>
+                                        </div>
+                                        <p>Do sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veni est, qui d tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                                        <ul class="breadcrumb">
+                                            <li><a href="#">Reply</a></li>
+                                            <li><a href="#">Share</a></li>
+                                        </ul>
+                                    </div>
+                                </article>
+                                <ul>
+                                    <li>
+                                        <article class="comment">
+                                            <figure class="comment-pic">
+                                                <img alt="" src="images/comment-image.jpeg">
+                                            </figure>
+                                            <div class="comment-content">
+                                                <div class="comment-header">
+                                                    <h4>Ashekur Rahman</h4>
+                                                    <p class="comment-date">Posted on September 3, 2012 at 10:18 am </p>
+                                                </div>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eos pariatur fuga ullam placeat corrupti inventore.</p>
+                                                <ul class="breadcrumb">
+                                                    <li><a href="#">Reply</a></li>
+                                                    <li><a href="#">Share</a></li>
+                                                </ul>
+                                            </div>
+                                        </article>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <article class="comment">
+                                    <figure class="comment-pic">
+                                        <img alt="" src="images/comment-image.jpeg">
+                                    </figure>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <h4>Ashekur Rahman</h4>
+                                            <p class="comment-date">Posted on September 3, 2012 at 10:18 am </p>
+                                        </div>
+                                        <p>Do sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veni est, qui d tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                                        <ul class="breadcrumb">
+                                            <li><a href="#">Reply</a></li>
+                                            <li><a href="#">Share</a></li>
+                                        </ul>
+                                    </div>
+                                </article>
+                            </li>
+                        </ul>
+                        <div class="comment-respond">
+                            <h4>Post your comments</h4>
+                            <form action="#" class="comment-form">
+                                <div class="form-double">
+                                    <div class="box">
+                                        <input type="text" class="form-control" placeholder="your Name">
+                                        <div class="space-30"></div>
+                                    </div>
+                                    <div class="box last">
+                                        <input type="email" class="form-control" placeholder="Your Email">
+                                        <div class="space-30"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="form-control" placeholder="Website URL">
+                                <div class="space-30"></div>
+                                <textarea name="comment" id="comment" rows="5" class="form-control" placeholder="Type Your Mesage..."></textarea>
+                                <div class="space-30"></div>
+                                <button type="submit" class="bttn-default">Post Comments</button>
+                            </form>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Subscribe-Form -->
+    <div class="subscribe-area section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-8 col-sm-offset-2">
+                    <div class="subscribe-form text-center">
+                        <h3 class="blue-color">Subscribe for Information!</h3>
+                        <div class="space-20"></div>
+                        <form id="mc-form">
+                            <input type="email" class="control" placeholder="Enter your email" required="required" id="mc-email">
+                            <button class="bttn-white active" type="submit"><span class="lnr lnr-location"></span> Subscribe</button>
+                            <label class="mt10" for="mc-email"></label>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Subscribe-Form-Area -->
+    <!-- Footer-Area -->
+    <footer class="footer-area" id="contact_page">
+        <div class="section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="page-title text-center">
+                            <h5 class="title">Contact US</h5>
+                            <h3 class="dark-color">Find Us By Bellow Details</h3>
+                            <div class="space-60"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-4">
+                        <div class="footer-box">
+                            <div class="box-icon">
+                                <span class="lnr lnr-map-marker"></span>
+                            </div>
+                            <p>UC Berkeley School of Information <br /> Berkeley, CA</p>
+                        </div>
+                        <div class="space-30 hidden visible-xs"></div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4">
+                        <div class="footer-box">
+                            <div class="box-icon">
+                                <span class="lnr lnr-phone-handset"></span>
+                            </div>
+                            <p>+1 555 487 5229  <br /> +1 555 487 5229 </p>
+                        </div>
+                        <div class="space-30 hidden visible-xs"></div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4">
+                        <div class="footer-box">
+                            <div class="box-icon">
+                                <span class="lnr lnr-envelope"></span>
+                            </div>
+                            <p>ashtonc@berkeley.edu <br /> tingwenbao@berkeley.edu <br /> sombiri@berkeley.edu
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer-Bootom -->
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-md-5">
+                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+            <span>Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="lnr lnr-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a></span>
+            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                        <div class="space-30 hidden visible-xs"></div>
+                    </div>
+                    <div class="col-xs-12 col-md-7">
+                        <div class="footer-menu">
+                            <ul>
+                                <li><a href="index.html#home_page">Home</a></li>
+                                <li><a href="index.html#about_page">About</a></li>
+                                <li><a href="index.html#features_page">Features</a></li>
+                                <li><a href="index.html#gallery_page">Gallery</a></li>
+                                <!-- <li><a href="index.html#price_page">Pricing</a></li> -->
+                                <li><a href="index.html#questions_page">FAQ</a></li>
+                                <li><a href="single.html">Technical Details</a></li>
+                                <li><a href="index.html#contact_page">Contacts</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer-Bootom-End -->
+    </footer>
+    <!-- Footer-Area-End -->
+    <!--Vendor-JS-->
+    <script src="js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="js/vendor/jquery-ui.js"></script>
+    <script src="js/vendor/bootstrap.min.js"></script>
+    <!--Plugin-JS-->
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/contact-form.js"></script>
+    <script src="js/ajaxchimp.js"></script>
+    <script src="js/scrollUp.min.js"></script>
+    <script src="js/magnific-popup.min.js"></script>
+    <script src="js/wow.min.js"></script>
+    <!--Main-active-JS-->
+    <script src="js/main.js"></script>
+</body>
+
+</html>
