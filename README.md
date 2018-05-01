@@ -27,3 +27,4 @@
 1. Import the project from App_Inventor folder to the MIT App Inventor
 1. To connect to phone, click Connect -> AI Companion and it will pop up a bar code and a code. Open app inventor app from your phone and either scan bar code or put in the code from your phone. 
 
+### Project Site: https://www.ischool.berkeley.edu/projects/2018/skinai-love-your-skin-not-research
